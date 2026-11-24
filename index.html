@@ -2410,7 +2410,10 @@
         return;
       }
       if (intent === "manage_cancel" || intent === "manage_reschedule" || intent === "manage_choose") {
-        // still ask the assistant, but fall back to the local flow if it tries to start a new booking
+        if (!loadBookings().length && !state.booking) {
+          applyReply(startManage(intent === "manage_reschedule" ? "reschedule" : "cancel", raw));
+          return;
+        }
         const reply = manageSafetyNet(raw, await getReply(history));
         applyReply(reply);
         return;
