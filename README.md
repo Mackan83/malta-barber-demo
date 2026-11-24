@@ -11,7 +11,7 @@ Edit the commented `CONFIG` block at the top of `index.html`. Everything on the 
 - **Branches** — name, address, hours, `openDays` (0 = Sunday), `openHour` / `closeHour`, optional `closeHourByDay`, Google Maps link, chat `aliases`
 - **Services** — name, `price`, `mins`, `aliases` for typed chat
 - **Times** — leave `sampleSlots` off a branch to auto-fill demo times from opening hours, or pin them with `sampleSlots: ["10:00", "11:30", "14:00"]`
-- **Reviews, about, chat greeting, copy, footer**
+- **Reviews, chat greeting, copy, footer**
 - **Desktop hero column** — `heroAside` (trust strip, benefit tiles, a short review quote, hours line, chat button). It only shows on desktop; leave it in place and edit the text when you customise a shop.
 - **Knowledge** — `knowledge` is the shop fact pack the assistant is allowed to use (services in detail, hours, parking, policies, barbers, FAQs). Keep prices and hours in line with `services` and `branches`.
 - **Demo banner** — set `demoBanner.show` to `false` when this is no longer a pitch demo
