@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Your Barber Co. — Prices up front. Book in two taps.</title>
+  <meta name="description" content="Demo barber website for Malta shops. Services, example prices and next free slots on the first screen. Book in two taps or via chat.">
+  <meta name="robots" content="noindex,nofollow">
+  <!--
+    Customise the site for a new client by editing CONFIG below.
+    The page, colours, prices, branches, reviews and chat all read from it.
+    See README.md for a short guide.
+  -->
+  <script>
+  const CONFIG = {
+    name: "Your Barber Co.",
+    brandHtml: "Your Barber <span>Co.</span>",
+    phone: "+356 0000 0000",
+    callLabel: "Call \u00a00000 0000",
+    whatsapp: "35600000000",
+    timeZone: "Europe/Malta",
+    currency: "€",
+
+    colors: {
+      bg: "#0c0b0a",
+      bg2: "#141311",
+      surface: "#1c1a17",
+      line: "#2c2924",
+      gold: "#d4a017",
+      gold2: "#f0c14b",
+      text: "#f4f0e8",
+      muted: "#9a9488",
+      soft: "#c9c2b6",
+      whatsapp: "#25d366"
+    },
+
+    demoBanner: {
+      show: true,
+      text: "Demo — this could be your shop"
+    },
+
+    metaTitle: "Your Barber Co. — Prices up front. Book in two taps.",
+    metaDescription: "Demo barber website for Malta shops. Services, example prices and next free slots on the first screen. Book in two taps or via chat.",
+
+    headlineHtml: "Prices up front.<br>Book in two taps.",
+    tagline: "See the price, pick a time, you’re in.",
+    // Leave kicker empty to auto-build it from branch names.
+    kicker: "",
+
+    copy: {
+      bookNow: "Book now",
+      callShop: "Call the shop",
+      hint: "Tap a service, then a time. Or book in the chat — it only takes a minute.",
+      servicesTitle: "Services & prices",
+      pricesNote: "Example prices for this demo — a real shop would show its own.",
+      slotsTitleToday: "Next free slots today",
+      slotsTitleOther: "Next free slots {day}",
+      slotsNote: "Demo availability — not a live calendar",
+      branchesTitle: "Three shops, one number",
+      branchesLede: "Pick the closest chair. Call, open maps, or message us on WhatsApp.",
+      reviewsTitle: "What clients say",
+      reviewsLede: "Short and useful — the kind of reviews people actually read.",
+      aboutTitle: "The shop",
+      about: "Your Barber Co. is a fictional Malta barbershop built for this demo: classic cuts, skin fades and hot-towel shaves, with prices on the first screen and a chair you can hold in two taps. Gallery and story stay out of the way so people can book and go.",
+      footerBlurb: "A demo website for Malta barbershops.",
+      footerFine: "This is a pitch mockup, not a live shop. Names, addresses, prices and times are examples. Tapping “Send on WhatsApp” opens a pre-filled message to a placeholder number — nothing is booked on a real calendar.",
+      stickyReady: "Ready to book?",
+      stickyHint: "Service, time, done."
+    },
+
+    chat: {
+      title: "Booking assistant",
+      subtitle: "Demo chat — no live calendar",
+      greeting: "Hi! I can get you a chair in about a minute. Which branch works for you?"
+    },
+
+    services: [
+      { id: "haircut", name: "Haircut", price: 16, mins: 30, aliases: ["hair", "cut", "trim"] },
+      { id: "fade", name: "Skin fade", price: 20, mins: 45, aliases: ["fade", "skin"] },
+      { id: "beard", name: "Beard trim", price: 10, mins: 20, aliases: ["beard"] },
+      { id: "combo", name: "Haircut + beard", price: 24, mins: 50, aliases: ["combo", "cut + beard", "haircut and beard", "hair and beard"] },
+      { id: "shave", name: "Hot towel shave", price: 18, mins: 30, aliases: ["shave", "hot towel", "razor"] },
+      { id: "kids", name: "Kids cut", price: 12, mins: 25, aliases: ["kid", "child", "boy", "son"] }
+    ],
+
+    branches: [
+      {
+        id: "sliema",
+        name: "Sliema",
+        address: "22 Triq ix-Xatt, Tas-Sliema",
+        hours: "Mon–Sat 09:00–19:00",
+        closedLabel: "Closed Sun",
+        openDays: [1, 2, 3, 4, 5, 6],
+        openHour: 9,
+        closeHour: 19,
+        maps: "https://www.google.com/maps/search/?api=1&query=Triq+ix-Xatt+Sliema+Malta",
+        aliases: ["sliema", "sliem", "xatt"]
+        // sampleSlots: ["12:30", "13:00", "14:00"]  // optional; omit to auto-fill from hours
+      },
+      {
+        id: "stjulians",
+        name: "St Julian’s",
+        address: "7 Triq il-Kbira, San Ġiljan",
+        hours: "Mon–Sat 10:00–20:00",
+        closedLabel: "Closed Sun",
+        openDays: [1, 2, 3, 4, 5, 6],
+        openHour: 10,
+        closeHour: 20,
+        maps: "https://www.google.com/maps/search/?api=1&query=St+Julian%27s+Malta",
+        aliases: ["julian", "stj", "st j", "paceville", "giljan", "ġiljan"]
+      },
+      {
+        id: "valletta",
+        name: "Valletta",
+        address: "14 Triq ir-Repubblika, Il-Belt Valletta",
+        hours: "Mon–Fri 09:00–18:00, Sat 09:00–14:00",
+        closedLabel: "Closed Sun",
+        openDays: [1, 2, 3, 4, 5, 6],
+        openHour: 9,
+        closeHour: 18,
+        closeHourByDay: { "6": 14 },
+        maps: "https://www.google.com/maps/search/?api=1&query=Triq+ir-Repubblika+Valletta+Malta",
+        aliases: ["valletta", "belt", "republic", "repubblika"]
+      }
+    ],
+
+    reviews: [
+      { stars: 5, text: "Booked in under a minute and was in the chair on time. Finally, a barber site that just shows the price.", who: "Luca · Sliema" },
+      { stars: 5, text: "Clean fade, no fuss, honest prices. I’ll be back — and I already forwarded the link to my brother.", who: "Ana · St Julian’s" },
+      { stars: 5, text: "Brought my son in for a kids cut. Easy to book and they were great with him.", who: "Daniel · Valletta" }
+    ]
+  };
+  </script>
+  <style>
+    :root {
+      --bg: #0c0b0a;
+      --bg-2: #141311;
+      --surface: #1c1a17;
+      --line: #2c2924;
+      --gold: #d4a017;
+      --gold-2: #f0c14b;
+      --gold-dim: rgba(212, 160, 23, 0.14);
+      --text: #f4f0e8;
+      --muted: #9a9488;
+      --soft: #c9c2b6;
+      --whatsapp: #25d366;
+      --danger: #c45c4a;
+      --radius: 12px;
+      --header: 56px;
+      --sticky: 68px;
+      --max: 1120px;
+      --serif: Georgia, "Times New Roman", Times, serif;
+      --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 16px;
+      min-height: 100vh;
+      padding-bottom: calc(var(--sticky) + 16px + env(safe-area-inset-bottom));
+    }
+    a { color: inherit; }
+    button, input { font: inherit; }
+    img, svg { display: block; }
+    .wrap { width: min(var(--max), calc(100% - 32px)); margin: 0 auto; }
+
+    /* Demo banner */
+    .banner {
+      background: linear-gradient(90deg, #3a2e10, #2a2414 40%, #3a2e10);
+      color: var(--gold-2);
+      font-size: 12.5px;
+      letter-spacing: 0.02em;
+      text-align: center;
+      padding: 8px 36px 8px 12px;
+      position: relative;
+      border-bottom: 1px solid rgba(212, 160, 23, 0.35);
+    }
+    .banner[hidden] { display: none; }
+    .banner button {
+      position: absolute;
+      right: 8px; top: 50%; transform: translateY(-50%);
+      background: none; border: 0; color: var(--gold-2);
+      width: 28px; height: 28px; cursor: pointer; font-size: 18px; line-height: 1;
+    }
+
+    /* Header */
+    header.top {
+      position: sticky; top: 0; z-index: 40;
+      height: var(--header);
+      background: rgba(12, 11, 10, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center;
+    }
+    .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .brand {
+      display: flex; align-items: center; gap: 10px; text-decoration: none;
+    }
+    .brand svg { width: 36px; height: 36px; flex: none; }
+    .brand-name { font-family: var(--serif); font-size: 1.05rem; letter-spacing: 0.01em; }
+    .brand-name span { color: var(--gold); }
+    nav.desk { display: none; gap: 18px; font-size: 13.5px; color: var(--soft); }
+    nav.desk a { text-decoration: none; }
+    nav.desk a:hover { color: var(--gold-2); }
+    .call-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--gold-2); text-decoration: none; font-size: 13.5px; font-weight: 600;
+      border: 1px solid rgba(212, 160, 23, 0.4);
+      padding: 6px 10px; border-radius: 999px;
+    }
+
+    /* Hero + first screen */
+    .hero {
+      padding: 20px 0 8px;
+    }
+    .hero-grid {
+      display: grid;
+      gap: 22px;
+    }
+    .kicker {
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-family: var(--serif);
+      font-weight: 500;
+      font-size: clamp(1.7rem, 6vw, 2.55rem);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+    .tagline { color: var(--soft); margin: 10px 0 16px; max-width: 36ch; }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      border: 0; border-radius: 999px; cursor: pointer; text-decoration: none;
+      font-weight: 650; letter-spacing: 0.01em;
+      padding: 12px 18px;
+    }
+    .btn-gold { background: linear-gradient(180deg, var(--gold-2), var(--gold)); color: #1a1406; }
+    .btn-gold:hover { filter: brightness(1.06); }
+    .btn-ghost {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--line);
+    }
+    .hint { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+
+    /* Panels */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .panel h2 {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      padding: 12px 14px 0;
+    }
+    .note {
+      font-size: 11.5px;
+      color: var(--muted);
+      padding: 4px 14px 10px;
+    }
+
+    /* Services */
+    .services { list-style: none; }
+    .services li {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: baseline;
+      padding: 9px 14px;
+      border-top: 1px solid var(--line);
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .services li:first-child { border-top: 0; }
+    .services li:hover { background: var(--gold-dim); }
+    .services li[aria-pressed="true"] {
+      background: var(--gold-dim);
+      box-shadow: inset 3px 0 0 var(--gold);
+    }
+    .services .name { font-weight: 600; font-size: 15px; }
+    .services .dur { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 6px; }
+    .services .price { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--gold-2); }
+
+    /* Slots */
+    .slots-block { margin-top: 12px; }
+    .slots-block h2 { padding-bottom: 4px; }
+    .branch-slots { padding: 8px 14px 12px; border-top: 1px solid var(--line); }
+    .branch-slots:first-of-type { border-top: 0; }
+    .branch-meta {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+      margin-bottom: 8px; font-size: 13.5px;
+    }
+    .branch-meta strong { font-weight: 700; }
+    .branch-meta .open { color: var(--muted); font-size: 12px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      border: 1px solid rgba(212, 160, 23, 0.45);
+      background: #151310;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+    }
+    .chip:hover, .chip[aria-pressed="true"] {
+      background: var(--gold);
+      color: #1a1406;
+      border-color: var(--gold);
+    }
+    .chip.ghost { border-style: dashed; color: var(--muted); border-color: var(--line); cursor: default; }
+    .empty-slots { color: var(--muted); font-size: 13px; }
+
+    /* Branches */
+    section { padding: 36px 0; }
+    section h2.sec {
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .lede { color: var(--muted); margin-bottom: 18px; max-width: 50ch; }
+    .branch-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .card h3 { font-family: var(--serif); font-size: 1.25rem; margin-bottom: 6px; }
+    .card p { color: var(--soft); font-size: 14px; }
+    .card .hours { color: var(--muted); font-size: 13px; margin: 6px 0 12px; }
+    .card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn-sm { padding: 8px 12px; font-size: 13px; font-weight: 650; }
+    .btn-line {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--line); border-radius: 999px;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    /* Reviews, about, gallery */
+    .reviews { display: grid; gap: 12px; }
+    blockquote.card { margin: 0; }
+    blockquote.card p { font-size: 14.5px; color: var(--text); }
+    .stars { color: var(--gold); letter-spacing: 1px; font-size: 13px; margin-bottom: 6px; }
+    .who { color: var(--muted); font-size: 12.5px; margin-top: 10px; }
+    .about p { color: var(--soft); max-width: 62ch; }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .tile {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 30% 20%, rgba(212,160,23,0.18), transparent 50%),
+        var(--bg-2);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+      color: var(--gold-2);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .tile svg { width: 36px; height: 36px; stroke: var(--gold); fill: none; stroke-width: 1.4; }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 28px 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    footer .brand-name { color: var(--text); margin-bottom: 4px; }
+    footer a { color: var(--soft); }
+    .fine { margin-top: 14px; font-size: 11.5px; color: #6f6a62; max-width: 70ch; }
+
+    /* Sticky book bar (mobile) */
+    .sticky-bar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+      background: rgba(16, 14, 12, 0.96);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line);
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sticky-bar .msg { flex: 1; font-size: 12.5px; color: var(--soft); line-height: 1.3; }
+    .sticky-bar .msg strong { display: block; color: var(--text); font-size: 13.5px; }
+    .sticky-bar .btn { padding: 11px 16px; }
+
+    /* Chat */
+    .fab {
+      position: fixed; z-index: 50;
+      right: 16px;
+      bottom: calc(var(--sticky) + 16px + env(safe-area-inset-bottom));
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 0; cursor: pointer;
+      background: linear-gradient(180deg, var(--gold-2), var(--gold));
+      color: #1a1406;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .fab[aria-expanded="true"] { display: none; }
+    .fab svg { width: 26px; height: 26px; }
+    .chat {
+      position: fixed; z-index: 60;
+      right: 12px;
+      bottom: calc(var(--sticky) + 12px + env(safe-area-inset-bottom));
+      width: min(380px, calc(100vw - 24px));
+      height: min(560px, calc(100vh - var(--sticky) - 80px));
+      background: #161412;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 16px 50px rgba(0,0,0,.5);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .chat[hidden] { display: none; }
+    .chat-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px;
+      background: #1c1915;
+      border-bottom: 1px solid var(--line);
+    }
+    .chat-head strong { display: block; font-size: 14px; }
+    .chat-head span { color: var(--muted); font-size: 11.5px; }
+    .icon-btn {
+      background: none; border: 0; color: var(--soft); cursor: pointer;
+      width: 32px; height: 32px; font-size: 20px;
+    }
+    .msgs {
+      flex: 1; overflow-y: auto; padding: 14px 12px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .bubble {
+      max-width: 88%;
+      padding: 8px 11px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .bubble.bot { background: #24211c; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .bubble.user { background: var(--gold); color: #1a1406; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 600; }
+    .bubble .sum { margin-top: 6px; font-size: 13px; color: var(--soft); }
+    .bubble .sum b { color: var(--text); font-weight: 650; }
+    .replies { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+    .replies button, .wa-btn {
+      border: 1px solid rgba(212, 160, 23, 0.45);
+      background: #1a1814; color: var(--text);
+      border-radius: 999px; padding: 7px 11px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .replies button:hover { background: var(--gold-dim); }
+    .wa-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--whatsapp); border-color: var(--whatsapp); color: #06210e;
+      text-decoration: none; margin-top: 8px;
+    }
+    .composer {
+      display: flex; gap: 8px; padding: 10px 12px;
+      border-top: 1px solid var(--line);
+      background: #1c1915;
+    }
+    .composer input {
+      flex: 1; background: #0f0e0c; border: 1px solid var(--line);
+      color: var(--text); border-radius: 999px; padding: 9px 12px; outline: none;
+    }
+    .composer input:focus { border-color: var(--gold); }
+    .composer button {
+      background: var(--gold); color: #1a1406; border: 0;
+      border-radius: 999px; padding: 0 14px; font-weight: 700; cursor: pointer;
+    }
+
+
+    @media (max-width: 859px) {
+      .fab { display: none; }
+      .banner {
+        font-size: 12px;
+        padding: 6px 32px 6px 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      header.top { height: 52px; }
+      .brand svg { width: 32px; height: 32px; }
+      .hero { padding: 10px 0 0; }
+      .hero-grid { gap: 12px; }
+      h1 { font-size: 1.58rem; }
+      .tagline { font-size: 13.5px; margin: 6px 0 10px; max-width: none; }
+      .hint { display: none; }
+      .cta-row { gap: 8px; }
+      .btn { padding: 10px 16px; }
+      .panel h2 { padding: 8px 12px 0; }
+      .note { padding: 2px 12px 6px; font-size: 11px; }
+      .services li { padding: 6px 12px; }
+      .services .name { font-size: 14px; }
+      .slots-block { margin-top: 8px; }
+      .branch-slots { padding: 6px 12px 8px; }
+      .branch-meta { margin-bottom: 5px; }
+      .branch-meta .open { display: none; }
+      .chip { padding: 5px 10px; font-size: 12.5px; }
+      .note { display: none; }
+      .kicker { margin-bottom: 4px; }
+    }
+
+    @media (min-width: 860px) {
+      body { padding-bottom: 24px; }
+      .sticky-bar { display: none; }
+      .fab { bottom: 24px; }
+      .chat { bottom: 24px; right: 24px; height: min(620px, calc(100vh - 48px)); }
+      nav.desk { display: flex; }
+      .hero { padding: 28px 0 12px; }
+      .hero-grid { grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+      .branch-grid, .reviews { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="banner" id="demoBanner">
+    <span id="bannerText">Demo — this could be your shop</span>
+    <button type="button" aria-label="Dismiss demo notice" id="dismissBanner">&times;</button>
+  </div>
+
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#top" id="top">
+        <svg viewBox="0 0 36 36" aria-hidden="true">
+          <circle cx="18" cy="18" r="16.5" fill="none" stroke="var(--gold)" stroke-width="1.4"/>
+          <circle cx="12.5" cy="12.5" r="2.7" fill="none" stroke="var(--gold-2)" stroke-width="1.35"/>
+          <circle cx="23.5" cy="12.5" r="2.7" fill="none" stroke="var(--gold-2)" stroke-width="1.35"/>
+          <path d="M14.4 14.6 18 18.2 25 27M21.6 14.6 18 18.2 11 27" fill="none" stroke="var(--gold-2)" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="brand-name" id="brandName">Your Barber <span>Co.</span></div>
+      </a>
+      <nav class="desk" aria-label="Primary">
+        <a href="#services">Services</a>
+        <a href="#slots">Times</a>
+        <a href="#branches">Branches</a>
+        <a href="#reviews">Reviews</a>
+      </nav>
+      <a class="call-link" id="callLink" href="tel:+35600000000">Call &nbsp;0000 0000</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-label="Book a cut">
+      <div class="wrap hero-grid">
+        <div>
+          <p class="kicker" id="kicker">Sliema · St Julian’s · Valletta</p>
+          <h1 id="headline">Prices up front.<br>Book in two taps.</h1>
+          <p class="tagline" id="tagline">See the price, pick a time, you’re in.</p>
+          <div class="cta-row">
+            <button class="btn btn-gold" type="button" id="bookNow">Book now</button>
+            <a class="btn btn-ghost" id="callShop" href="tel:+35600000000">Call the shop</a>
+          </div>
+          <p class="hint" id="hint">Tap a service, then a time. Or book in the chat — it only takes a minute.</p>
+        </div>
+
+        <div>
+          <div class="panel" id="services">
+            <h2 id="servicesTitle">Services &amp; prices</h2>
+            <p class="note" id="pricesNote">Example prices for this demo — a real shop would show its own.</p>
+            <ul class="services" id="serviceList"></ul>
+          </div>
+          <div class="panel slots-block" id="slots">
+            <h2 id="slotsHeading">Next free slots today</h2>
+            <p class="note" id="slotsNote">Demo availability — not a live calendar</p>
+            <div id="slotRows"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="branches">
+      <div class="wrap">
+        <h2 class="sec" id="branchesTitle">Three shops, one number</h2>
+        <p class="lede" id="branchesLede">Pick the closest chair. Call, open maps, or message us on WhatsApp.</p>
+        <div class="branch-grid" id="branchCards"></div>
+      </div>
+    </section>
+
+    <section id="reviews">
+      <div class="wrap">
+        <h2 class="sec" id="reviewsTitle">What clients say</h2>
+        <p class="lede" id="reviewsLede">Short and useful — the kind of reviews people actually read.</p>
+        <div class="reviews" id="reviewList"></div>
+      </div>
+    </section>
+
+    <section class="about" id="about">
+      <div class="wrap">
+        <h2 class="sec" id="aboutTitle">The shop</h2>
+        <p id="aboutText">Your Barber Co. is a fictional Malta barbershop built for this demo: classic cuts, skin fades and hot-towel shaves, with prices on the first screen and a chair you can hold in two taps. Gallery and story stay out of the way so people can book and go.</p>
+        <div class="gallery" aria-hidden="true">
+          <div class="tile">
+            <svg viewBox="0 0 36 36"><circle cx="10" cy="10" r="3.5"/><circle cx="26" cy="10" r="3.5"/><path d="M10 13.5 16 28m10-14.5L20 28M16 28h4"/></svg>
+            Cuts
+          </div>
+          <div class="tile">
+            <svg viewBox="0 0 36 36"><path d="M8 26c6-14 14-14 20 0"/><path d="M12 22h12"/><path d="M18 8v6"/></svg>
+            Shaves
+          </div>
+          <div class="tile">
+            <svg viewBox="0 0 36 36"><rect x="8" y="16" width="20" height="10" rx="1.5"/><path d="M12 16V12a6 6 0 0 1 12 0v4"/></svg>
+            The chair
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="brand-name" id="footerName">Your Barber Co.</div>
+      <p id="footerBlurb">A demo website for Malta barbershops. Phone <a id="footerPhone" href="tel:+35600000000">+356 0000 0000</a> · <a id="footerWa" href="https://wa.me/35600000000" target="_blank" rel="noopener">WhatsApp</a></p>
+      <p class="fine" id="footerFine">This is a pitch mockup, not a live shop. Names, addresses, prices and times are examples. Tapping “Send on WhatsApp” opens a pre-filled message to a placeholder number — nothing is booked on a real calendar.</p>
+    </div>
+  </footer>
+
+  <div class="sticky-bar">
+    <div class="msg" id="stickyMsg"><strong>Ready to book?</strong> Service, time, done.</div>
+    <button class="btn btn-gold" type="button" id="stickyBook">Book</button>
+  </div>
+
+  <button class="fab" type="button" id="chatFab" aria-label="Open booking chat" aria-expanded="false" aria-controls="chat">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H8l-4 4z"/></svg>
+  </button>
+
+  <div class="chat" id="chat" hidden role="dialog" aria-labelledby="chatTitle">
+    <div class="chat-head">
+      <div>
+        <strong id="chatTitle">Booking assistant</strong>
+        <span id="chatSubtitle">Demo chat — no live calendar</span>
+      </div>
+      <button class="icon-btn" type="button" id="chatClose" aria-label="Close chat">&times;</button>
+    </div>
+    <div class="msgs" id="msgs"></div>
+    <div class="replies" id="replies"></div>
+    <form class="composer" id="composer">
+      <input id="chatInput" type="text" autocomplete="name" placeholder="Type a reply…" aria-label="Message the assistant">
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <script>
+  (function () {
+    const C = CONFIG;
+    const SERVICES = C.services;
+    const BRANCHES = C.branches.map(function (b) {
+      return Object.assign({}, b, {
+        start: b.openHour,
+        end: b.closeHour,
+        open: b.openDays
+      });
+    });
+
+    function digits(s) { return String(s || "").replace(/\D/g, ""); }
+    function telHref() { return "tel:" + digits(C.phone); }
+    function waBase() { return "https://wa.me/" + digits(C.whatsapp || C.phone); }
+    const TEL = telHref();
+    const WA = waBase();
+
+    function hexToRgb(hex) {
+      const h = String(hex || "").replace("#", "");
+      const full = h.length === 3 ? h.split("").map(function (c) { return c + c; }).join("") : h;
+      const n = parseInt(full, 16);
+      return [n >> 16 & 255, n >> 8 & 255, n & 255];
+    }
+
+    function setText(id, value, asHtml) {
+      const el = $(id);
+      if (!el || value == null) return;
+      if (asHtml) el.innerHTML = value;
+      else el.textContent = value;
+    }
+
+    function applyConfig() {
+      const col = C.colors || {};
+      const root = document.documentElement.style;
+      const map = { bg: "--bg", bg2: "--bg-2", surface: "--surface", line: "--line", gold: "--gold", gold2: "--gold-2", text: "--text", muted: "--muted", soft: "--soft", whatsapp: "--whatsapp" };
+      Object.keys(map).forEach(function (k) {
+        if (col[k]) root.setProperty(map[k], col[k]);
+      });
+      if (col.gold) {
+        const rgb = hexToRgb(col.gold);
+        root.setProperty("--gold-dim", "rgba(" + rgb.join(",") + ",0.14)");
+      }
+      document.title = C.metaTitle || C.name;
+      const meta = document.querySelector('meta[name="description"]');
+      if (meta && C.metaDescription) meta.setAttribute("content", C.metaDescription);
+
+      const banner = $("demoBanner");
+      if (banner) {
+        const show = C.demoBanner && C.demoBanner.show;
+        banner.hidden = !show;
+        setText("bannerText", C.demoBanner && C.demoBanner.text);
+      }
+
+      setText("brandName", C.brandHtml || C.name, true);
+      setText("footerName", C.name);
+      const kicker = C.kicker || BRANCHES.map(function (b) { return b.name; }).join(" · ");
+      setText("kicker", kicker);
+      setText("headline", C.headlineHtml, true);
+      setText("tagline", C.tagline);
+
+      const copy = C.copy || {};
+      setText("bookNow", copy.bookNow);
+      setText("callShop", copy.callShop);
+      setText("hint", copy.hint);
+      setText("servicesTitle", copy.servicesTitle);
+      setText("pricesNote", copy.pricesNote);
+      setText("slotsNote", copy.slotsNote);
+      setText("branchesTitle", copy.branchesTitle);
+      setText("branchesLede", copy.branchesLede);
+      setText("reviewsTitle", copy.reviewsTitle);
+      setText("reviewsLede", copy.reviewsLede);
+      setText("aboutTitle", copy.aboutTitle);
+      setText("aboutText", copy.about);
+      setText("chatTitle", C.chat && C.chat.title);
+      setText("chatSubtitle", C.chat && C.chat.subtitle);
+
+      ["callLink", "callShop"].forEach(function (id) {
+        const el = $(id);
+        if (el) el.setAttribute("href", TEL);
+      });
+      if ($("callLink") && C.callLabel) $("callLink").textContent = C.callLabel;
+
+      const blurb = $("footerBlurb");
+      if (blurb) {
+        blurb.innerHTML = escapeHtml(copy.footerBlurb || "") +
+          " Phone <a id='footerPhone' href='" + TEL + "'>" + escapeHtml(C.phone) + "</a> · " +
+          "<a id='footerWa' href='" + WA + "' target='_blank' rel='noopener'>WhatsApp</a>";
+      }
+      setText("footerFine", copy.footerFine);
+
+      const list = $("reviewList");
+      if (list) {
+        list.innerHTML = (C.reviews || []).map(function (r) {
+          const stars = "★".repeat(r.stars || 5);
+          return "<blockquote class='card'>" +
+            "<div class='stars' aria-label='" + (r.stars || 5) + " stars'>" + stars + "</div>" +
+            "<p>“" + escapeHtml(r.text) + "”</p>" +
+            "<p class='who'>" + escapeHtml(r.who) + "</p></blockquote>";
+        }).join("");
+      }
+    }
+
+    const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    function maltaNow() {
+      const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: C.timeZone || "Europe/Malta",
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", weekday: "short",
+        hour12: false
+      }).formatToParts(new Date());
+      const g = (t) => parts.find((p) => p.type === t).value;
+      const weekdayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+      return {
+        y: +g("year"), mo: +g("month"), d: +g("day"),
+        hour: +g("hour"), minute: +g("minute"),
+        dow: weekdayMap[g("weekday")],
+        weekday: g("weekday")
+      };
+    }
+
+    function addDays(now, n) {
+      const utc = Date.UTC(now.y, now.mo - 1, now.d + n);
+      const dt = new Date(utc);
+      return {
+        y: dt.getUTCFullYear(), mo: dt.getUTCMonth() + 1, d: dt.getUTCDate(),
+        dow: dt.getUTCDay()
+      };
+    }
+
+    function dateLabel(now, offset) {
+      const x = addDays(now, offset);
+      if (offset === 0) return "Today";
+      if (offset === 1) return "Tomorrow";
+      return DAYS[x.dow] + " " + x.d + " " + MONTHS[x.mo - 1];
+    }
+
+    function longDate(now, offset) {
+      const x = addDays(now, offset);
+      const dayName = offset === 0 ? "Today" : offset === 1 ? "Tomorrow" : DAYS[x.dow];
+      return dayName + ", " + x.d + " " + MONTHS[x.mo - 1];
+    }
+
+    function hash(s) {
+      let h = 0;
+      for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+      return h;
+    }
+
+    function candidateTimes(branch, dateObj) {
+      let start = branch.start, end = branch.end;
+      if (branch.closeHourByDay && branch.closeHourByDay[dateObj.dow] != null) {
+        end = branch.closeHourByDay[dateObj.dow];
+      }
+      const times = [];
+      for (let h = start; h < end; h++) {
+        for (const m of [0, 30]) {
+          if (h === start && m === 0) continue;
+          if (h === end - 1 && m === 30) continue;
+          times.push(String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0"));
+        }
+      }
+      return times;
+    }
+
+    function slotsFor(branch, now, offset) {
+      const dateObj = addDays(now, offset);
+      if (!branch.open.includes(dateObj.dow)) return [];
+      let list;
+      const pinned = branch.sampleSlots;
+      const dayPinned = pinned && !Array.isArray(pinned) ? pinned[dateObj.dow] : pinned;
+      if (Array.isArray(dayPinned) && dayPinned.length) {
+        list = dayPinned.slice();
+      } else {
+        const all = candidateTimes(branch, dateObj);
+        const seed = hash(branch.id + "|" + dateObj.y + "-" + dateObj.mo + "-" + dateObj.d);
+        const free = all.filter((_, i) => ((seed >> (i % 16)) & 3) !== 0);
+        list = free.length ? free : all.filter((_, i) => i % 3 === 0);
+      }
+      if (offset === 0) {
+        const nowMins = now.hour * 60 + now.minute + 20;
+        list = list.filter((t) => {
+          const [h, m] = t.split(":").map(Number);
+          return h * 60 + m >= nowMins;
+        });
+      }
+      return list;
+    }
+
+    const state = {
+      service: null,
+      branch: null,
+      dayOffset: null,
+      time: null,
+      name: "",
+      step: "branch"
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const serviceList = $("serviceList");
+    const slotRows = $("slotRows");
+    const branchCards = $("branchCards");
+    const msgs = $("msgs");
+    const replies = $("replies");
+    const chat = $("chat");
+    const chatFab = $("chatFab");
+
+    function euro(n) { return (C.currency || "€") + n; }
+
+    function renderServices() {
+      serviceList.innerHTML = SERVICES.map((s) =>
+        "<li role='button' tabindex='0' data-id='" + s.id + "' aria-pressed='" + (state.service === s.id) + "'>" +
+          "<span class='name'>" + s.name + "<span class='dur'> · " + s.mins + " min</span></span>" +
+          "<span class='price'>" + euro(s.price) + "</span>" +
+        "</li>"
+      ).join("");
+    }
+
+    function renderSlots() {
+      const now = maltaNow();
+      let offset = 0;
+      let any = BRANCHES.some((b) => slotsFor(b, now, 0).length);
+      if (!any) { offset = (now.dow === 0) ? 1 : 1; any = true; }
+      const copy = C.copy || {};
+      $("slotsHeading").textContent = offset === 0
+        ? (copy.slotsTitleToday || "Next free slots today")
+        : (copy.slotsTitleOther || "Next free slots {day}").replace("{day}", dateLabel(now, offset).toLowerCase());
+      slotRows.innerHTML = BRANCHES.map((b) => {
+        let list = slotsFor(b, now, offset).slice(0, 3);
+        const chips = list.length
+          ? list.map((t) => "<button type='button' class='chip' data-branch='" + b.id + "' data-day='" + offset + "' data-time='" + t + "'>" + t + "</button>").join("")
+          : "<span class='empty-slots'>Closed or fully booked — try another branch.</span>";
+        return "<div class='branch-slots'>" +
+          "<div class='branch-meta'><strong>" + b.name + "</strong><span class='open'>" + b.hours + "</span></div>" +
+          "<div class='chips'>" + chips + "</div></div>";
+      }).join("");
+    }
+
+    function renderBranches() {
+      branchCards.innerHTML = BRANCHES.map((b) =>
+        "<article class='card'>" +
+          "<h3>" + b.name + "</h3>" +
+          "<p>" + b.address + "</p>" +
+          "<p class='hours'>" + b.hours + (b.closedLabel ? " · " + b.closedLabel : "") + "</p>" +
+          "<div class='card-actions'>" +
+            "<a class='btn btn-gold btn-sm' href='" + TEL + "'>Call</a>" +
+            "<a class='btn-line btn-sm' href='" + b.maps + "' target='_blank' rel='noopener'>Maps</a>" +
+            "<a class='btn-line btn-sm' href='" + WA + "?text=" + encodeURIComponent("Hi, I'd like to book at the " + b.name + " branch.") + "' target='_blank' rel='noopener'>WhatsApp</a>" +
+          "</div></article>"
+      ).join("");
+    }
+
+    function updateSticky() {
+      const s = SERVICES.find((x) => x.id === state.service);
+      const b = BRANCHES.find((x) => x.id === state.branch);
+      const el = $("stickyMsg");
+      if (s && b && state.time != null && state.dayOffset != null) {
+        el.innerHTML = "<strong>" + s.name + " · " + state.time + "</strong>" + b.name + ", " + dateLabel(maltaNow(), state.dayOffset);
+      } else if (s) {
+        el.innerHTML = "<strong>" + s.name + " selected</strong>Now pick a time — that’s tap two.";
+      } else {
+        const copy = C.copy || {};
+        el.innerHTML = "<strong>" + (copy.stickyReady || "Ready to book?") + "</strong>" + (copy.stickyHint || "Service, time, done.");
+      }
+    }
+
+    function svcById(id) { return SERVICES.find((s) => s.id === id); }
+    function brById(id) { return BRANCHES.find((b) => b.id === id); }
+
+    function openChat() {
+      chat.hidden = false;
+      chatFab.setAttribute("aria-expanded", "true");
+      $("chatInput").focus();
+    }
+    function closeChat() {
+      chat.hidden = true;
+      chatFab.setAttribute("aria-expanded", "false");
+    }
+
+    function addBubble(kind, html) {
+      const d = document.createElement("div");
+      d.className = "bubble " + kind;
+      d.innerHTML = html;
+      msgs.appendChild(d);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+    function userSay(text) { addBubble("user", escapeHtml(text)); }
+    function botSay(html) { addBubble("bot", html); }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    function clearReplies() { replies.innerHTML = ""; }
+    function replyButtons(items) {
+      clearReplies();
+      items.forEach((it) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = it.label;
+        b.addEventListener("click", () => handleReply(it.value, it.label));
+        replies.appendChild(b);
+      });
+    }
+
+    function resetBooking(keepService) {
+      const svc = keepService ? state.service : null;
+      state.service = svc;
+      state.branch = null;
+      state.dayOffset = null;
+      state.time = null;
+      state.name = "";
+      state.step = "branch";
+      renderServices();
+      updateSticky();
+    }
+
+    function startConversation(opts) {
+      opts = opts || {};
+      msgs.innerHTML = "";
+      clearReplies();
+      if (opts.fromSlot) {
+        const b = brById(state.branch);
+        const when = longDate(maltaNow(), state.dayOffset) + " at " + state.time;
+        if (state.service) {
+          const s = svcById(state.service);
+          state.step = "name";
+          botSay("Great — I’ve held <b>" + escapeHtml(state.time) + "</b> " + escapeHtml(longDate(maltaNow(), state.dayOffset)) + " at <b>" + escapeHtml(b.name) + "</b> for a <b>" + escapeHtml(s.name) + "</b> (demo hold). What’s your name?");
+        } else {
+          state.step = "service";
+          botSay("That’s <b>" + escapeHtml(b.name) + "</b> at <b>" + escapeHtml(state.time) + "</b> (" + escapeHtml(longDate(maltaNow(), state.dayOffset)) + "). What would you like done?");
+          replyButtons(SERVICES.map((s) => ({ label: s.name + " · " + euro(s.price), value: "svc:" + s.id })));
+        }
+      } else if (state.service && !state.branch) {
+        state.step = "branch";
+        const s = svcById(state.service);
+        botSay("Nice choice — <b>" + escapeHtml(s.name) + "</b> at " + euro(s.price) + ". Which branch works for you?");
+        replyButtons(BRANCHES.map((b) => ({ label: b.name, value: "br:" + b.id })));
+      } else {
+        resetBooking(false);
+        state.step = "branch";
+        botSay(C.chat && C.chat.greeting ? C.chat.greeting : "Hi! I can get you a chair in about a minute. Which branch works for you?");
+        replyButtons(BRANCHES.map((b) => ({ label: b.name, value: "br:" + b.id })));
+      }
+      openChat();
+    }
+
+    function askDay() {
+      state.step = "day";
+      const now = maltaNow();
+      const options = [];
+      for (let i = 0; i <= 4; i++) {
+        const slots = slotsFor(brById(state.branch), now, i);
+        if (!slots.length) continue;
+        options.push({ label: dateLabel(now, i), value: "day:" + i });
+        if (options.length >= 3) break;
+      }
+      const b = brById(state.branch);
+      if (!options.length) {
+        botSay("Sorry — " + escapeHtml(b.name) + " has no demo slots in the next few days. Try another branch?");
+        state.step = "branch";
+        replyButtons(BRANCHES.map((x) => ({ label: x.name, value: "br:" + x.id })));
+        return;
+      }
+      botSay("When would you like to come into <b>" + escapeHtml(b.name) + "</b>?");
+      replyButtons(options);
+    }
+
+    function askTime() {
+      state.step = "time";
+      const now = maltaNow();
+      const slots = slotsFor(brById(state.branch), now, state.dayOffset);
+      botSay("Here are the next free times at <b>" + escapeHtml(brById(state.branch).name) + "</b> (" + escapeHtml(longDate(now, state.dayOffset)) + "):");
+      replyButtons(slots.slice(0, 6).map((t) => ({ label: t, value: "time:" + t })));
+    }
+
+    function askName() {
+      state.step = "name";
+      const s = svcById(state.service);
+      const b = brById(state.branch);
+      botSay("Almost done — <b>" + escapeHtml(s.name) + "</b> at <b>" + escapeHtml(b.name) + "</b>, " + escapeHtml(longDate(maltaNow(), state.dayOffset)) + " at <b>" + escapeHtml(state.time) + "</b>. What’s your name?");
+      clearReplies();
+      $("chatInput").focus();
+    }
+
+    function confirmBooking() {
+      state.step = "done";
+      const s = svcById(state.service);
+      const b = brById(state.branch);
+      const when = longDate(maltaNow(), state.dayOffset) + " at " + state.time;
+      const msg =
+        "Hi, I'd like to book at " + C.name + "\n\n" +
+        "Name: " + state.name + "\n" +
+        "Branch: " + b.name + "\n" +
+        "Service: " + s.name + " (" + euro(s.price) + ")\n" +
+        "When: " + when + "\n\n" +
+        "(Sent from the demo website)";
+      const href = WA + "?text=" + encodeURIComponent(msg);
+      botSay(
+        "You’re booked in <i>(demo)</i>:<div class='sum'>" +
+        "<b>Name:</b> " + escapeHtml(state.name) + "<br>" +
+        "<b>Branch:</b> " + escapeHtml(b.name) + "<br>" +
+        "<b>Service:</b> " + escapeHtml(s.name) + " · " + euro(s.price) + "<br>" +
+        "<b>When:</b> " + escapeHtml(when) + "</div>" +
+        "<a class='wa-btn' id='waSend' href='" + href + "' target='_blank' rel='noopener'>Send on WhatsApp</a>"
+      );
+      replyButtons([
+        { label: "Start over", value: "reset" }
+      ]);
+    }
+
+    function handleReply(value, label) {
+      if (value === "reset") {
+        userSay(label);
+        resetBooking(false);
+        renderServices();
+        startConversation();
+        return;
+      }
+      userSay(label);
+      if (value.startsWith("br:")) {
+        state.branch = value.slice(3);
+        if (!state.service) {
+          state.step = "service";
+          botSay("Nice — <b>" + escapeHtml(brById(state.branch).name) + "</b> it is. What can we do for you?");
+          replyButtons(SERVICES.map((s) => ({ label: s.name + " · " + euro(s.price), value: "svc:" + s.id })));
+        } else {
+          askDay();
+        }
+      } else if (value.startsWith("svc:")) {
+        state.service = value.slice(4);
+        renderServices();
+        updateSticky();
+        if (state.branch && state.time != null && state.dayOffset != null) askName();
+        else if (state.branch) askDay();
+        else {
+          state.step = "branch";
+          botSay("Got it — <b>" + escapeHtml(svcById(state.service).name) + "</b>. Which branch?");
+          replyButtons(BRANCHES.map((b) => ({ label: b.name, value: "br:" + b.id })));
+        }
+      } else if (value.startsWith("day:")) {
+        state.dayOffset = +value.slice(4);
+        askTime();
+      } else if (value.startsWith("time:")) {
+        state.time = value.slice(5);
+        updateSticky();
+        if (state.service) askName();
+        else {
+          state.step = "service";
+          botSay("Held <b>" + escapeHtml(state.time) + "</b> (demo). What would you like done?");
+          replyButtons(SERVICES.map((s) => ({ label: s.name + " · " + euro(s.price), value: "svc:" + s.id })));
+        }
+      }
+    }
+
+    function matchFromAliases(t, items) {
+      let best = null, bestLen = 0;
+      items.forEach(function (item) {
+        const names = [item.name].concat(item.aliases || []);
+        names.forEach(function (a) {
+          const s = String(a || "").toLowerCase();
+          if (s && t.indexOf(s) !== -1 && s.length > bestLen) {
+            best = item.id;
+            bestLen = s.length;
+          }
+        });
+      });
+      return best;
+    }
+    function matchBranch(t) { return matchFromAliases(t, BRANCHES); }
+    function matchService(t) { return matchFromAliases(t, SERVICES); }
+    function matchDay(t) {
+      const now = maltaNow();
+      if (/today/.test(t)) return 0;
+      if (/tomorrow|tmr|tmrw/.test(t)) return 1;
+      const names = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+      for (let i = 0; i < 7; i++) {
+        if (t.includes(names[i]) || t.includes(names[i].slice(0, 3))) {
+          let off = (i - now.dow + 7) % 7;
+          return off;
+        }
+      }
+      return null;
+    }
+    function matchTime(t) {
+      const m = t.match(/\b(\d{1,2})(?::|\.)?(\d{2})?\s*(am|pm)?\b/i);
+      if (!m) return null;
+      let h = +m[1], min = m[2] ? +m[2] : 0;
+      const ap = (m[3] || "").toLowerCase();
+      if (ap === "pm" && h < 12) h += 12;
+      if (ap === "am" && h === 12) h = 0;
+      if (h > 23 || min > 59) return null;
+      return String(h).padStart(2, "0") + ":" + String(min).padStart(2, "0");
+    }
+
+    function handleTyped(text) {
+      const raw = text.trim();
+      if (!raw) return;
+      const t = raw.toLowerCase();
+      if (/^(start over|restart|reset|cancel)$/.test(t)) {
+        userSay(raw);
+        resetBooking(false);
+        startConversation();
+        return;
+      }
+      if (state.step === "name" || state.step === "done") {
+        if (state.step === "done") { userSay(raw); botSay("This demo booking is already set. Tap <b>Send on WhatsApp</b> or <b>Start over</b>."); return; }
+        if (raw.length < 2) { userSay(raw); botSay("I need a name to put on the booking — even a first name is fine."); return; }
+        state.name = raw.replace(/\s+/g, " ");
+        userSay(raw);
+        confirmBooking();
+        updateSticky();
+        return;
+      }
+      if (state.step === "branch") {
+        const id = matchBranch(t);
+        if (id) { handleReply("br:" + id, brById(id).name); return; }
+        userSay(raw);
+        botSay("I didn’t catch the branch — pick one of the buttons, or type " + BRANCHES.map(function (b) { return b.name; }).join(", ").replace(/, ([^,]*)$/, " or $1") + ".");
+        replyButtons(BRANCHES.map((b) => ({ label: b.name, value: "br:" + b.id })));
+        return;
+      }
+      if (state.step === "service") {
+        const id = matchService(t);
+        if (id) { const s = svcById(id); handleReply("svc:" + id, s.name + " · " + euro(s.price)); return; }
+        userSay(raw);
+        botSay("I didn’t catch the service — use a button, or type haircut, skin fade, beard, and so on.");
+        replyButtons(SERVICES.map((s) => ({ label: s.name + " · " + euro(s.price), value: "svc:" + s.id })));
+        return;
+      }
+      if (state.step === "day") {
+        const off = matchDay(t);
+        if (off != null) {
+          const slots = slotsFor(brById(state.branch), maltaNow(), off);
+          if (!slots.length) { userSay(raw); botSay("That day looks closed or full in the demo calendar. Try another?"); return; }
+          handleReply("day:" + off, dateLabel(maltaNow(), off));
+          return;
+        }
+        userSay(raw);
+        botSay("Pick a day from the buttons, or type today or tomorrow.");
+        return;
+      }
+      if (state.step === "time") {
+        const tm = matchTime(t);
+        const slots = slotsFor(brById(state.branch), maltaNow(), state.dayOffset);
+        if (tm && slots.includes(tm)) { handleReply("time:" + tm, tm); return; }
+        userSay(raw);
+        if (tm) { botSay(escapeHtml(tm) + " isn’t on the demo list for that day. Pick one of the times below."); replyButtons(slots.slice(0, 6).map((x) => ({ label: x, value: "time:" + x }))); return; }
+        botSay("Pick a time from the buttons, or type one like 14:30.");
+      }
+    }
+
+    /* Events */
+    $("dismissBanner").addEventListener("click", () => {
+      $("demoBanner").hidden = true;
+    });
+
+    serviceList.addEventListener("click", (e) => {
+      const li = e.target.closest("li");
+      if (!li) return;
+      state.service = li.dataset.id;
+      renderServices();
+      updateSticky();
+    });
+    serviceList.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const li = e.target.closest("li");
+      if (!li) return;
+      e.preventDefault();
+      state.service = li.dataset.id;
+      renderServices();
+      updateSticky();
+    });
+
+    slotRows.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chip[data-branch]");
+      if (!btn) return;
+      state.branch = btn.dataset.branch;
+      state.dayOffset = +btn.dataset.day;
+      state.time = btn.dataset.time;
+      updateSticky();
+      startConversation({ fromSlot: true });
+    });
+
+    function openBook() {
+      if (state.service && state.branch && state.time != null) startConversation({ fromSlot: true });
+      else startConversation();
+    }
+    $("bookNow").addEventListener("click", openBook);
+    $("stickyBook").addEventListener("click", openBook);
+    chatFab.addEventListener("click", openBook);
+    $("chatClose").addEventListener("click", closeChat);
+
+    $("composer").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = $("chatInput");
+      const v = input.value;
+      input.value = "";
+      handleTyped(v);
+    });
+
+    applyConfig();
+    renderServices();
+    renderSlots();
+    renderBranches();
+    updateSticky();
+  })();
+  </script>
+</body>
+</html>
