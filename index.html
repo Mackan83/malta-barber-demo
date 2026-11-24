@@ -1513,7 +1513,7 @@
           const barber = barberForSlot(br.id, stamp, tm);
           out.push({
             label: dateLabel(now, i) + " " + tm,
-            value: "move:" + b.ref + ":" + stamp + ":" + tm,
+            value: "move|" + b.ref + "|" + stamp + "|" + tm,
             stamp: stamp,
             time: tm,
             offset: i,
@@ -1557,7 +1557,7 @@
       return {
         html: "Shall I move " + bookingWhenPhrase(b).replace(/^your /, "your ") + " to <b>" + escapeHtml(time) + "</b> " + escapeHtml(whenWord) + (first ? ", with " + escapeHtml(first) : "") + "?",
         replies: [
-          { label: "Yes, please move it", value: "move-yes:" + b.ref + ":" + stamp + ":" + time },
+          { label: "Yes, please move it", value: "move-yes|" + b.ref + "|" + stamp + "|" + time },
           { label: "No, keep the original time", value: "move-no" }
         ]
       };
@@ -2280,7 +2280,7 @@
         if (reply.ref && /cancel/.test(low) && /yes|please/.test(low)) return { label: v, value: "cancel-yes:" + reply.ref };
         if (/keep|don't cancel|do not cancel|no,/.test(low) && reply.action === "propose_cancel") return { label: v, value: "cancel-no" };
         if (reply.reschedule && reply.reschedule.ref && /yes|move|please/.test(low)) {
-          return { label: v, value: "move-yes:" + reply.reschedule.ref + ":" + reply.reschedule.date + ":" + reply.reschedule.time };
+          return { label: v, value: "move-yes|" + reply.reschedule.ref + "|" + reply.reschedule.date + "|" + reply.reschedule.time };
         }
         return { label: v, value: "ai:" + v };
       });
@@ -2469,11 +2469,15 @@
         applyReply(proposeReschedule(findBookingByRef(value.slice("rsv-pick:".length))));
         return;
       }
-      if (value.indexOf("move-yes:") === 0) {
+      if (value.indexOf("move-yes|") === 0 || value.indexOf("move-yes:") === 0) {
         userSay(label);
         showTyping();
-        const parts = value.split(":");
-        executeReschedule(parts[1], parts[2], parts[3]);
+        const parts = value.replace(/^move-yes[|:]/, "").split("|");
+        const stampTime = parts.length >= 3 ? parts : value.replace(/^move-yes:/, "").split(":");
+        const ref = stampTime[0];
+        const stamp = stampTime[1];
+        const time = stampTime.length > 3 ? stampTime[2] + ":" + stampTime[3] : stampTime[2];
+        executeReschedule(ref, stamp, time);
         return;
       }
       if (value === "move-no") {
@@ -2482,12 +2486,16 @@
         applyReply(pendingLocalReply("no") || { html: "No problem — I'll keep the original time.", replies: [] });
         return;
       }
-      if (value.indexOf("move:") === 0) {
+      if (value.indexOf("move|") === 0 || (value.indexOf("move:") === 0 && value.indexOf("move-yes") !== 0)) {
         userSay(label);
         showTyping();
-        const parts = value.split(":");
-        const b = findBookingByRef(parts[1]);
-        applyReply(proposeMoveTo(b, parts[2], parts[3]));
+        const body = value.replace(/^move[|:]/, "");
+        const parts = value.indexOf("move|") === 0 ? body.split("|") : body.split(":");
+        const ref = parts[0];
+        const stamp = parts[1];
+        const time = parts.length > 3 ? parts[2] + ":" + parts[3] : parts[2];
+        const b = findBookingByRef(ref);
+        applyReply(proposeMoveTo(b, stamp, time));
         return;
       }
       if (value.indexOf("ai:") === 0 || C.aiEndpoint) {
