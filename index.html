@@ -74,7 +74,7 @@
     chat: {
       title: "Booking assistant",
       subtitle: "Demo chat — no live calendar",
-      greeting: "Hi! I can get you a chair in about a minute. Which branch works for you?"
+      greeting: "Hello — I can help you book a visit. Which branch would you prefer?"
     },
 
     services: [
@@ -946,6 +946,47 @@
       return h;
     }
 
+    function barbersForBranch(branchId) {
+      const kn = C.knowledge && Array.isArray(C.knowledge.branches) ? C.knowledge.branches : [];
+      const br = brById(branchId);
+      const row = kn.find(function (x) {
+        return x && (x.id === branchId || (br && x.name === br.name));
+      });
+      return (row && Array.isArray(row.barbers) ? row.barbers : []).filter(function (x) { return x && x.name; });
+    }
+    function barberFirstName(barber) {
+      if (!barber || !barber.name) return "";
+      return String(barber.name).trim().split(/\s+/)[0];
+    }
+    function barberForSlot(branchId, stamp, time) {
+      const list = barbersForBranch(branchId);
+      if (!list.length) return null;
+      const i = hash(String(branchId || "") + "|" + String(stamp || "") + "|" + String(time || "")) % list.length;
+      return list[i];
+    }
+    function assignedBarber() {
+      if (!state.branch || !state.time || state.dayOffset == null) return null;
+      return barberForSlot(state.branch, dateStamp(maltaNow(), state.dayOffset), state.time);
+    }
+    function nameAskHtml() {
+      const b = brById(state.branch);
+      const first = barberFirstName(assignedBarber());
+      const whenWord = state.dayOffset === 0 ? "today" : state.dayOffset === 1 ? "tomorrow" : longDate(maltaNow(), state.dayOffset);
+      const withBarber = first ? " is available with " + escapeHtml(first) : " is available";
+      const place = b ? " at " + escapeHtml(b.name) : "";
+      return "The <b>" + escapeHtml(state.time) + "</b> slot you selected " + escapeHtml(whenWord) + place + withBarber + ". Could you please give me your name so we can proceed with your reservation?";
+    }
+    function slotAvailableHtml(askService) {
+      const b = brById(state.branch);
+      const first = barberFirstName(assignedBarber());
+      const whenWord = state.dayOffset === 0 ? "today" : state.dayOffset === 1 ? "tomorrow" : longDate(maltaNow(), state.dayOffset);
+      const withBarber = first ? " is available with " + escapeHtml(first) : " is available";
+      const place = b ? " at " + escapeHtml(b.name) : "";
+      const lead = "The <b>" + escapeHtml(state.time) + "</b> slot you selected " + escapeHtml(whenWord) + place + withBarber + ".";
+      if (askService) return lead + " What would you like done?";
+      return lead;
+    }
+
     function candidateTimes(branch, dateObj) {
       let start = branch.start, end = branch.end;
       if (branch.closeHourByDay && branch.closeHourByDay[dateObj.dow] != null) {
@@ -1235,26 +1276,23 @@
       setComposerVisible(true);
       showTyping();
       if (opts.fromSlot) {
-        const b = brById(state.branch);
-        const when = longDate(maltaNow(), state.dayOffset) + " at " + state.time;
         if (state.service) {
-          const s = svcById(state.service);
           state.step = "name";
-          botSay("Great — I’ve held <b>" + escapeHtml(state.time) + "</b> " + escapeHtml(longDate(maltaNow(), state.dayOffset)) + " at <b>" + escapeHtml(b.name) + "</b> for a <b>" + escapeHtml(s.name) + "</b> (demo hold). What’s your name?");
+          botSay(nameAskHtml());
         } else {
           state.step = "service";
-          botSay("That’s <b>" + escapeHtml(b.name) + "</b> at <b>" + escapeHtml(state.time) + "</b> (" + escapeHtml(longDate(maltaNow(), state.dayOffset)) + "). What would you like done?");
+          botSay(slotAvailableHtml(true));
           replyButtons(SERVICES.map((s) => ({ label: s.name + " · " + euro(s.price), value: "svc:" + s.id })));
         }
       } else if (state.service && !state.branch) {
         state.step = "branch";
         const s = svcById(state.service);
-        botSay("Nice choice — <b>" + escapeHtml(s.name) + "</b> at " + euro(s.price) + ". Which branch works for you?");
+        botSay("A <b>" + escapeHtml(s.name) + "</b> is " + euro(s.price) + ". Which branch would you prefer?");
         replyButtons(BRANCHES.map((b) => ({ label: b.name, value: "br:" + b.id })));
       } else {
         resetBooking(false);
         state.step = "branch";
-        botSay(C.chat && C.chat.greeting ? C.chat.greeting : "Hi! I can get you a chair in about a minute. Which branch works for you?");
+        botSay(C.chat && C.chat.greeting ? C.chat.greeting : "Hello — I can help you book a visit. Which branch would you prefer?");
         replyButtons(BRANCHES.map((b) => ({ label: b.name, value: "br:" + b.id })));
       }
       openChat();
@@ -1272,7 +1310,7 @@
       }
       const b = brById(state.branch);
       if (!options.length) {
-        botSay("Sorry — " + escapeHtml(b.name) + " has no demo slots in the next few days. Try another branch?");
+        botSay("I'm sorry, " + escapeHtml(b.name) + " doesn't have free times in the next few days. Would you like to try another branch?");
         state.step = "branch";
         replyButtons(BRANCHES.map((x) => ({ label: x.name, value: "br:" + x.id })));
         return;
@@ -1291,9 +1329,7 @@
 
     function askName() {
       state.step = "name";
-      const s = svcById(state.service);
-      const b = brById(state.branch);
-      botSay("Almost done — <b>" + escapeHtml(s.name) + "</b> at <b>" + escapeHtml(b.name) + "</b>, " + escapeHtml(longDate(maltaNow(), state.dayOffset)) + " at <b>" + escapeHtml(state.time) + "</b>. What’s your name?");
+      botSay(nameAskHtml());
       clearReplies();
       $("chatInput").focus();
     }
@@ -1340,7 +1376,7 @@
         "DTSTART;TZID=" + tz + ":" + start,
         "DTEND;TZID=" + tz + ":" + end,
         "SUMMARY:" + fold(booking.service + " at " + C.name + " (" + booking.branchName + ")"),
-        "DESCRIPTION:" + fold("Ref " + booking.ref + ". Pay in shop, " + euro(booking.price) + "."),
+        "DESCRIPTION:" + fold("Ref " + booking.ref + (booking.barber ? " with " + booking.barber : "") + ". Pay in shop, " + euro(booking.price) + "."),
         "LOCATION:" + fold(booking.address || booking.branchName),
         "END:VEVENT",
         "END:VCALENDAR"
@@ -1362,6 +1398,7 @@
       const now = maltaNow();
       const when = longDate(now, state.dayOffset) + " at " + state.time;
       const ref = makeRef();
+      const barber = assignedBarber();
       const booking = {
         ref: ref,
         name: state.name,
@@ -1374,7 +1411,9 @@
         mins: s.mins,
         stamp: dateStamp(now, state.dayOffset),
         time: state.time,
-        when: when
+        when: when,
+        barber: barber ? barber.name : "",
+        barberFirst: barberFirstName(barber)
       };
       state.ref = ref;
       state.booking = booking;
@@ -1392,6 +1431,7 @@
         "<dl>" +
         "<dt>Name</dt><dd>" + escapeHtml(booking.name) + "</dd>" +
         "<dt>Branch</dt><dd>" + escapeHtml(booking.branchName) + "</dd>" +
+        (booking.barber ? "<dt>Barber</dt><dd>" + escapeHtml(booking.barber) + "</dd>" : "") +
         "<dt>Service</dt><dd>" + escapeHtml(booking.service) + "</dd>" +
         "<dt>Price</dt><dd>" + euro(booking.price) + " <span class='pay'>pay in shop</span></dd>" +
         "<dt>When</dt><dd>" + escapeHtml(booking.when) + "</dd>" +
@@ -1402,7 +1442,7 @@
         "<button type='button' class='btn btn-ghost' id='cancelChange'>Cancel / change</button>" +
         "</div>";
       const gen = talkGen;
-      const histText = "Booked " + booking.ref + " for " + booking.name + ", " + booking.service + " at " + booking.branchName + ", " + booking.when + ". Pay in shop. The shop has been notified.";
+      const histText = "Booked " + booking.ref + " for " + booking.name + ", " + booking.service + " at " + booking.branchName + (booking.barber ? " with " + booking.barber : "") + ", " + booking.when + ". Pay in shop. The shop has been notified.";
       afterBot(async function () {
         const ok = await finishTyping(histText, gen);
         if (!ok) return;
@@ -1468,10 +1508,9 @@
       if (state.step === "day") return { html: b ? "When would you like to come into <b>" + escapeHtml(b.name) + "</b>?" : "Which day works?", replies: dayReplies() };
       if (state.step === "time") return { html: "Which time works for you?", replies: timeReplies() };
       if (state.step === "name") {
-        const bit = (s && b && state.time) ? "That’s <b>" + escapeHtml(s.name) + "</b> at <b>" + escapeHtml(b.name) + "</b>, " + escapeHtml(longDate(maltaNow(), state.dayOffset)) + " at <b>" + escapeHtml(state.time) + "</b>. " : "";
-        return { html: bit + "What’s your name for the booking?", replies: [], focus: true };
+        return { html: (s && b && state.time) ? nameAskHtml() : "Could you please give me your name so we can proceed with your reservation?", replies: [], focus: true };
       }
-      if (state.step === "done") return { html: "Your booking is set. You can add it to your calendar, or cancel / change it.", replies: [] };
+      if (state.step === "done") return { html: "Your reservation is confirmed. You can add it to your calendar, or cancel or change it if you need to.", replies: [] };
       return { html: "", replies: [] };
     }
 
@@ -1506,10 +1545,10 @@
       }
       if (days.length) {
         state.step = "day";
-        return { html: "No other free times on that day in the demo calendar. Another day?", replies: days };
+        return { html: "I don't have other free times on that day. Would another day work for you?", replies: days };
       }
       state.step = "branch";
-      return { html: "I don’t have other demo times at that branch in the next few days. Try another branch?", replies: branchReplies() };
+      return { html: "I don't have other free times at that branch in the next few days. Would you like to try another branch?", replies: branchReplies() };
     }
 
     function intentReply(intent) {
@@ -1566,7 +1605,7 @@
       if (state.step === "done") {
         if (intent === "cancel" || /\b(change|cancel)\b/.test(t)) return { action: "cancel" };
         if (/\b(calendar|ics|download)\b/.test(t)) return { html: "Tap <b>Add to calendar</b> to download an .ics file.", replies: [] };
-        return { html: "Your booking is set. You can add it to your calendar, or cancel / change it.", replies: [] };
+        return { html: "Your reservation is confirmed. You can add it to your calendar, or cancel or change it if you need to.", replies: [] };
       }
 
       if (intent) return intentReply(intent);
@@ -1577,7 +1616,7 @@
         if (svc) {
           state.service = svc;
           state.step = "name";
-          return withPrompt("Got it — I’ll switch that to a <b>" + escapeHtml(svcById(svc).name) + "</b>.");
+          return withPrompt("Of course — I can change that to a <b>" + escapeHtml(svcById(svc).name) + "</b>.");
         }
         const br = matchBranch(t);
         if (br) {
@@ -1591,10 +1630,10 @@
           const slots = slotsFor(brById(state.branch), maltaNow(), state.dayOffset);
           if (slots.indexOf(tm) !== -1) {
             state.time = tm;
-            return withPrompt("Okay, I’ll move you to <b>" + escapeHtml(tm) + "</b>.");
+            return withPrompt("Of course, I can move you to <b>" + escapeHtml(tm) + "</b>.");
           }
         }
-        return { html: "I need your name for the booking — a first name is enough. Or ask me about times, prices or the shop.", replies: [], focus: true };
+        return { html: "Could you please share your name? A first name is enough. You're also welcome to ask about times, prices or the shop.", replies: [], focus: true };
       }
 
       if (state.step === "branch") {
@@ -1614,7 +1653,7 @@
         const off = matchDay(t);
         if (off != null) {
           const slots = slotsFor(brById(state.branch), maltaNow(), off);
-          if (!slots.length) return { html: "That day looks closed or full in the demo calendar. Try another?", replies: dayReplies() };
+          if (!slots.length) return { html: "That day looks closed or full. Would another day work for you?", replies: dayReplies() };
           return { action: "step", value: "day:" + off, label: dateLabel(maltaNow(), off) };
         }
         return { html: "Pick a day from the buttons, or type today or tomorrow.", replies: dayReplies() };
@@ -1623,7 +1662,7 @@
         const tm = matchTime(t);
         const slots = slotsFor(brById(state.branch), maltaNow(), state.dayOffset);
         if (tm && slots.indexOf(tm) !== -1) return { action: "step", value: "time:" + tm, label: tm };
-        if (tm) return { html: escapeHtml(tm) + " isn’t on the demo list for that day. Pick one of the times below.", replies: slots.slice(0, 6).map(function (x) { return { label: x, value: "time:" + x }; }) };
+        if (tm) return { html: escapeHtml(tm) + " isn't free that day. You can pick one of the times below.", replies: slots.slice(0, 6).map(function (x) { return { label: x, value: "time:" + x }; }) };
         return { html: "Pick a time from the buttons, or type one like 14:30.", replies: timeReplies() };
       }
       return withPrompt("Sorry, I didn’t catch that.");
@@ -1639,8 +1678,12 @@
       return BRANCHES.map(function (b) {
         const days = [];
         for (let i = 0; i <= 4; i++) {
-          const times = slotsFor(b, now, i);
-          if (times.length) days.push({ date: dateStamp(now, i), label: longDate(now, i), times: times.slice(0, 10) });
+          const stamp = dateStamp(now, i);
+          const times = slotsFor(b, now, i).slice(0, 10).map(function (tm) {
+            const barber = barberForSlot(b.id, stamp, tm);
+            return { time: tm, barber: barberFirstName(barber) || undefined };
+          });
+          if (times.length) days.push({ date: stamp, label: longDate(now, i), times: times });
         }
         return { id: b.id, name: b.name, days: days };
       });
@@ -1768,7 +1811,7 @@
         state.branch = value.slice(3);
         if (!state.service) {
           state.step = "service";
-          botSay("Nice — <b>" + escapeHtml(brById(state.branch).name) + "</b> it is. What can we do for you?");
+          botSay("<b>" + escapeHtml(brById(state.branch).name) + "</b>, of course. What would you like done?");
           replyButtons(SERVICES.map((s) => ({ label: s.name + " · " + euro(s.price), value: "svc:" + s.id })));
         } else {
           askDay();
@@ -1781,7 +1824,7 @@
         else if (state.branch) askDay();
         else {
           state.step = "branch";
-          botSay("Got it — <b>" + escapeHtml(svcById(state.service).name) + "</b>. Which branch?");
+          botSay("A <b>" + escapeHtml(svcById(state.service).name) + "</b>, certainly. Which branch would you prefer?");
           replyButtons(BRANCHES.map((b) => ({ label: b.name, value: "br:" + b.id })));
         }
       } else if (value.startsWith("day:")) {
@@ -1793,7 +1836,7 @@
         if (state.service) askName();
         else {
           state.step = "service";
-          botSay("Held <b>" + escapeHtml(state.time) + "</b> (demo). What would you like done?");
+          botSay(slotAvailableHtml(true));
           replyButtons(SERVICES.map((s) => ({ label: s.name + " · " + euro(s.price), value: "svc:" + s.id })));
         }
       }
