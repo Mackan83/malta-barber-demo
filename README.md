@@ -12,8 +12,9 @@ Edit the commented `CONFIG` block at the top of `index.html`. Everything on the 
 - **Services** — name, `price`, `mins`, `aliases` for typed chat
 - **Times** — leave `sampleSlots` off a branch to auto-fill demo times from opening hours, or pin them with `sampleSlots: ["10:00", "11:30", "14:00"]`
 - **Reviews, about, chat greeting, copy, footer**
+- **Knowledge** — `knowledge` is the shop fact pack the assistant is allowed to use (services in detail, hours, parking, policies, barbers, FAQs). Keep prices and hours in line with `services` and `branches`.
 - **Demo banner** — set `demoBanner.show` to `false` when this is no longer a pitch demo
-- **AI later** — leave `aiEndpoint` empty for the built-in scripted chat. Set it to a URL that accepts `POST { history, state, context }` and returns `{ text|html, replies?, action?, patch?, name? }`. If the request fails, the scripted assistant is used.
+- **AI** — leave `aiEndpoint` empty for the built-in scripted chat. Set it to the Worker URL that accepts `POST { messages, "config-subset", knowledge, slots, today }` and returns `{ reply, booking, quickReplies }`. If the request fails, the scripted assistant is used. Bot replies always show a short typing pause.
 
 Reload the page to see the changes. You do not need to edit the CSS or the rest of the JavaScript unless you want to change the layout.
 

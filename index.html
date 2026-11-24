@@ -126,6 +126,86 @@
       }
     ],
 
+
+    knowledge: {
+      languages: ["English", "Maltese", "Italian"],
+      payment: {
+        methods: ["Cash", "debit or credit card", "contactless"],
+        online: false,
+        note: "Pay in the shop after your cut. No online payment, no deposits on the website."
+      },
+      walkIns: "Walk-ins are welcome if a chair is free. Bookings take priority, especially on Saturdays.",
+      cancellation: "Cancel free of charge up to 2 hours before your time. If it is later than that, please call the shop so we can try to fill the chair.",
+      late: "We hold a booking for 10 minutes. After that the slot may go to a walk-in, and we will offer you the next free time.",
+      noShow: "Please cancel if you cannot come. After two no-shows we may ask you to book by phone only.",
+      kids: "The kids cut is for children under 12, €12, about 25 minutes. An adult should stay with them. Under 3s are only by a quick phone chat first, so we know they will be comfortable. Age 12 and over is a regular haircut.",
+      hygiene: "Tools are sterilised after every client, blades are never shared, and each client gets a fresh towel and a clean cape.",
+      products: [
+        { name: "House pomade", price: 12 },
+        { name: "Matte clay", price: 12 },
+        { name: "Sea salt spray", price: 10 },
+        { name: "Beard oil", price: 14 }
+      ],
+      productsNote: "Sold in the shop after your cut — ask your barber. Prices are examples for this demo.",
+      giftVouchers: "Gift vouchers are sold in the shop only, from €15 up (or fixed €15, €25, €40). Valid for 12 months. Not sold online.",
+      groups: "For 4 or more, or a wedding party, please call at least 2 weeks ahead so we can put more than one barber on. Saturday mornings in Sliema usually work best.",
+      holidays: "Closed on Sundays and public holidays. On Christmas Eve and New Year's Eve we close at 14:00 if that day is otherwise a working day — worth a quick call to confirm.",
+      services: [
+        { id: "haircut", name: "Haircut", price: 16, mins: 30, includes: "Consultation, wash if needed, scissors or clipper cut, and a simple finish with styling product." },
+        { id: "fade", name: "Skin fade", price: 20, mins: 45, includes: "Consultation, fade to skin on the sides and back, scissor work on top, and a clean finish." },
+        { id: "beard", name: "Beard trim", price: 10, mins: 20, includes: "Beard only — clipper or scissor tidy, line-up, and a little oil if you want it. No haircut." },
+        { id: "combo", name: "Haircut + beard", price: 24, mins: 50, includes: "A full haircut plus a beard trim in one visit, cheaper than booking both apart." },
+        { id: "shave", name: "Hot towel shave", price: 18, mins: 30, includes: "Hot towel, lather, straight-razor or equivalent shave, and a cool towel to finish." },
+        { id: "kids", name: "Kids cut", price: 12, mins: 25, includes: "A patient cut for under-12s, as described in the kids policy." }
+      ],
+      branches: [
+        {
+          id: "sliema",
+          name: "Sliema",
+          address: "22 Triq ix-Xatt, Tas-Sliema",
+          hours: "Monday–Saturday 09:00–19:00. Closed Sunday and public holidays.",
+          parking: "Paid parking near Sliema Ferries and along the side streets off the front. The seafront itself is often busy.",
+          bus: "Buses along Triq ix-Xatt / The Strand stop a short walk from the shop, near the Ferries.",
+          accessibility: "Ground floor, step-free from the pavement, with a slightly narrow door. Staff will help if you need it.",
+          barbers: [
+            { name: "Luca Grima", specialties: "Skin fades and modern cuts" },
+            { name: "Daniel Galea", specialties: "Classic cuts and kids" }
+          ]
+        },
+        {
+          id: "stjulians",
+          name: "St Julian’s",
+          address: "7 Triq il-Kbira, San Ġiljan",
+          hours: "Monday–Saturday 10:00–20:00. Closed Sunday and public holidays.",
+          parking: "Street parking is tight. Use the nearby public car parks and walk a few minutes; evenings are busier.",
+          bus: "Buses serving St Julian’s and Paceville stop within a short walk of Triq il-Kbira.",
+          accessibility: "Ground floor, one shallow step at the door. Please call if you need a hand getting in.",
+          barbers: [
+            { name: "Marco Vella", specialties: "Beards and hot towel shaves" },
+            { name: "Ana Camilleri", specialties: "Fades and styling" }
+          ]
+        },
+        {
+          id: "valletta",
+          name: "Valletta",
+          address: "14 Triq ir-Repubblika, Il-Belt Valletta",
+          hours: "Monday–Friday 09:00–18:00, Saturday 09:00–14:00. Closed Sunday and public holidays.",
+          parking: "No on-site parking. Use MCP or Floriana car parks and walk in through City Gate, a few minutes away.",
+          bus: "All main routes into Valletta terminate at the City Gate / Valletta bus terminus, a short walk up Republic Street.",
+          accessibility: "Ground floor on Republic Street, level with the pavement. The old stone doorway is a little narrow.",
+          barbers: [
+            { name: "Paul Azzopardi", specialties: "Classic gentleman’s cuts and hot towel shaves" },
+            { name: "Isaac Borg", specialties: "Fades and beards" }
+          ]
+        }
+      ],
+      faqs: [
+        { q: "Do I need an appointment?", a: "Booking is recommended. Walk-ins are welcome if a chair is free; bookings go first, especially on Saturdays." },
+        { q: "Can I get a beard trim only?", a: "Yes. A beard trim is €10 and takes about 20 minutes." },
+        { q: "What languages do you speak?", a: "English and Maltese in every shop, and Italian at St Julian’s and Valletta." }
+      ]
+    },
+
     reviews: [
       { stars: 5, text: "Booked in under a minute and was in the chair on time. Finally, a barber site that just shows the price.", who: "Luca · Sliema" },
       { stars: 5, text: "Clean fade, no fuss, honest prices. I’ll be back — and I already forwarded the link to my brother.", who: "Ana · St Julian’s" },
@@ -451,6 +531,33 @@
     }
     .chat-head strong { display: block; font-size: 14px; }
     .chat-head span { color: var(--muted); font-size: 11.5px; }
+
+    .chat-head .ai-label {
+      display: none;
+      color: var(--gold);
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .chat-head .ai-label.on { display: block; }
+    .bubble.thinking {
+      color: var(--muted);
+      font-style: italic;
+      font-weight: 400;
+    }
+    .bubble.thinking .dots {
+      display: inline-block;
+      min-width: 1.1em;
+      animation: typingDots 1.2s steps(3, end) infinite;
+    }
+    @keyframes typingDots {
+      0% { opacity: 0.25; }
+      50% { opacity: 1; }
+      100% { opacity: 0.25; }
+    }
+
     .icon-btn {
       background: none; border: 0; color: var(--soft); cursor: pointer;
       width: 32px; height: 32px; font-size: 20px;
@@ -675,6 +782,7 @@
     <div class="chat-head">
       <div>
         <strong id="chatTitle">Booking assistant</strong>
+        <span id="aiLabel" class="ai-label">AI assistant</span>
         <span id="chatSubtitle">Demo chat — no live calendar</span>
       </div>
       <button class="icon-btn" type="button" id="chatClose" aria-label="Close chat">&times;</button>
@@ -761,6 +869,8 @@
       setText("aboutText", copy.about);
       setText("chatTitle", C.chat && C.chat.title);
       setText("chatSubtitle", C.chat && C.chat.subtitle);
+      const aiLab = $("aiLabel");
+      if (aiLab) aiLab.classList.toggle("on", !!(C.aiEndpoint));
 
       ["callLink", "callShop"].forEach(function (id) {
         const el = $(id);
@@ -1014,10 +1124,6 @@
       addBubble("user", escapeHtml(text));
       history.push({ role: "user", text: String(text) });
     }
-    function botSay(html) {
-      addBubble("bot", html);
-      history.push({ role: "assistant", text: stripHtml(html) });
-    }
     function setComposerVisible(show) {
       const el = $("composer");
       if (el) el.style.display = show ? "" : "none";
@@ -1026,15 +1132,72 @@
       return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
-    function clearReplies() { replies.innerHTML = ""; }
+    let talkGen = 0;
+    let typingSince = 0;
+    let botChain = Promise.resolve();
+
+    function typingDelayMs(text) {
+      const n = stripHtml(text || "").length;
+      return Math.min(2000, Math.max(700, Math.round(800 + n * 16)));
+    }
+    function showTyping() {
+      if ($("thinking")) return;
+      const d = document.createElement("div");
+      d.className = "bubble bot thinking";
+      d.id = "thinking";
+      d.setAttribute("aria-live", "polite");
+      d.innerHTML = "typing<span class=\"dots\">…</span>";
+      msgs.appendChild(d);
+      msgs.scrollTop = msgs.scrollHeight;
+      typingSince = Date.now();
+    }
+    function hideTyping() {
+      const d = $("thinking");
+      if (d) d.remove();
+    }
+    function afterBot(fn) {
+      botChain = botChain.then(fn, fn);
+      return botChain;
+    }
+    async function finishTyping(text, gen) {
+      showTyping();
+      const wait = typingDelayMs(text) - (Date.now() - (typingSince || Date.now()));
+      if (wait > 0) await new Promise(function (r) { setTimeout(r, wait); });
+      if (gen != null && gen !== talkGen) return false;
+      hideTyping();
+      return true;
+    }
+    function resetTalk() {
+      talkGen += 1;
+      hideTyping();
+      typingSince = 0;
+      botChain = Promise.resolve();
+      return talkGen;
+    }
+
+    function botSay(html) {
+      const gen = talkGen;
+      return afterBot(async function () {
+        const ok = await finishTyping(html, gen);
+        if (!ok) return;
+        addBubble("bot", html);
+        history.push({ role: "assistant", text: stripHtml(html) });
+      });
+    }
+    function clearReplies() {
+      return afterBot(function () { replies.innerHTML = ""; });
+    }
     function replyButtons(items) {
-      clearReplies();
-      items.forEach((it) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.textContent = it.label;
-        b.addEventListener("click", () => handleReply(it.value, it.label));
-        replies.appendChild(b);
+      const list = items || [];
+      return afterBot(function () {
+        replies.innerHTML = "";
+        list.forEach(function (it) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.textContent = it.label;
+          b.addEventListener("click", function () { handleReply(it.value, it.label); });
+          replies.appendChild(b);
+        });
       });
     }
 
@@ -1064,10 +1227,12 @@
 
     function startConversation(opts) {
       opts = opts || {};
+      resetTalk();
       history = [];
       msgs.innerHTML = "";
-      clearReplies();
+      replies.innerHTML = "";
       setComposerVisible(true);
+      showTyping();
       if (opts.fromSlot) {
         const b = brById(state.branch);
         const when = longDate(maltaNow(), state.dayOffset) + " at " + state.time;
@@ -1217,7 +1382,6 @@
       saveBookings(list);
       renderSlots();
       updateSticky();
-      clearReplies();
       setComposerVisible(false);
       const card = document.createElement("div");
       card.className = "booked-card";
@@ -1236,9 +1400,16 @@
         "<button type='button' class='btn btn-gold' id='addCal'>Add to calendar</button>" +
         "<button type='button' class='btn btn-ghost' id='cancelChange'>Cancel / change</button>" +
         "</div>";
-      msgs.appendChild(card);
-      history.push({ role: "assistant", text: "Booked " + booking.ref + " for " + booking.name + ", " + booking.service + " at " + booking.branchName + ", " + booking.when + ". Pay in shop. The shop has been notified." });
-      msgs.scrollTop = msgs.scrollHeight;
+      const gen = talkGen;
+      const histText = "Booked " + booking.ref + " for " + booking.name + ", " + booking.service + " at " + booking.branchName + ", " + booking.when + ". Pay in shop. The shop has been notified.";
+      afterBot(async function () {
+        const ok = await finishTyping(histText, gen);
+        if (!ok) return;
+        replies.innerHTML = "";
+        msgs.appendChild(card);
+        history.push({ role: "assistant", text: histText });
+        msgs.scrollTop = msgs.scrollHeight;
+      });
     }
 
     function looksLikeName(raw) {
@@ -1457,9 +1628,59 @@
       return withPrompt("Sorry, I didn’t catch that.");
     }
 
-    // Plug-in point for a real AI later. When CONFIG.aiEndpoint is set, POST
-    // { history, state, context } and return { text|html, replies?, action?, patch?, name? }.
-    // If the endpoint is empty or the request fails, the scripted assistant is used.
+    function todayLabel() {
+      const n = maltaNow();
+      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      return days[n.dow] + " " + dateStamp(n, 0) + ", " + String(n.hour).padStart(2, "0") + ":" + String(n.minute).padStart(2, "0") + " " + (C.timeZone || "Europe/Malta");
+    }
+    function slotsPayload() {
+      const now = maltaNow();
+      return BRANCHES.map(function (b) {
+        const days = [];
+        for (let i = 0; i <= 4; i++) {
+          const times = slotsFor(b, now, i);
+          if (times.length) days.push({ date: dateStamp(now, i), label: longDate(now, i), times: times.slice(0, 10) });
+        }
+        return { id: b.id, name: b.name, days: days };
+      });
+    }
+    function findService(s) {
+      const q = String(s || "").toLowerCase().trim();
+      return SERVICES.find(function (x) {
+        return x.id === q || x.name.toLowerCase() === q || (x.aliases || []).some(function (a) { return String(a).toLowerCase() === q; });
+      });
+    }
+    function findBranch(s) {
+      const q = String(s || "").toLowerCase().trim();
+      return BRANCHES.find(function (x) {
+        return x.id === q || x.name.toLowerCase() === q || (x.aliases || []).some(function (a) { return q.indexOf(String(a).toLowerCase()) !== -1; });
+      });
+    }
+    function hydrateBooking(bk) {
+      if (!bk || typeof bk !== "object") return false;
+      const br = findBranch(bk.branch);
+      const sv = findService(bk.service);
+      const time = String(bk.time || "").trim();
+      const date = String(bk.date || "").trim();
+      const name = String(bk.name || "").trim();
+      if (!br || !sv || !name || !date || !/^\d{2}:\d{2}$/.test(time)) return false;
+      const now = maltaNow();
+      let offset = null;
+      for (let i = 0; i <= 14; i++) {
+        if (dateStamp(now, i) === date) { offset = i; break; }
+      }
+      if (offset == null) return false;
+      if (slotsFor(br, now, offset).indexOf(time) === -1) return false;
+      state.branch = br.id;
+      state.service = sv.id;
+      state.dayOffset = offset;
+      state.time = time;
+      state.name = name;
+      return true;
+    }
+
+    // When CONFIG.aiEndpoint is set, POST { messages, "config-subset", knowledge, slots, today }
+    // and expect { reply, booking, quickReplies }. On error, use the scripted assistant.
     async function getReply(hist) {
       if (C.aiEndpoint) {
         try {
@@ -1467,14 +1688,28 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              history: hist,
-              state: { service: state.service, branch: state.branch, dayOffset: state.dayOffset, time: state.time, name: state.name, step: state.step },
-              context: { shop: C.name, services: SERVICES, branches: BRANCHES.map(function (b) { return { id: b.id, name: b.name, address: b.address, hours: b.hours }; }) }
+              messages: hist,
+              "config-subset": {
+                name: C.name,
+                phone: C.phone,
+                currency: C.currency,
+                services: SERVICES.map(function (s) { return { id: s.id, name: s.name, price: s.price, mins: s.mins }; }),
+                branches: BRANCHES.map(function (b) { return { id: b.id, name: b.name, address: b.address, hours: b.hours, closedLabel: b.closedLabel }; })
+              },
+              knowledge: C.knowledge || {},
+              slots: slotsPayload(),
+              today: todayLabel()
             })
           });
           if (res.ok) {
             const data = await res.json();
-            if (data && (data.text || data.html || data.replies || data.action)) return data;
+            if (data && (data.reply || data.text || data.html || data.replies || data.quickReplies || data.action || data.booking)) {
+              if (data.reply && !data.text && !data.html) data.text = data.reply;
+              if (data.quickReplies && !data.replies) {
+                data.replies = data.quickReplies.map(function (label) { return { label: label, value: "ai:" + label }; });
+              }
+              return data;
+            }
           }
         } catch (err) { /* fall back to scripted */ }
       }
@@ -1484,9 +1719,12 @@
     function applyReply(reply) {
       if (!reply) return;
       if (reply.patch) Object.assign(state, reply.patch);
-      if (reply.action === "confirm") {
+      if (reply.action === "confirm" || (reply.booking && hydrateBooking(reply.booking))) {
         if (reply.name) state.name = reply.name;
-        confirmBooking();
+        if (reply.booking && !state.name && reply.booking.name) state.name = reply.booking.name;
+        if (reply.text || reply.html) botSay(reply.html || escapeHtml(reply.text));
+        if (state.name && state.branch && state.service && state.time != null && state.dayOffset != null) confirmBooking();
+        updateSticky();
         return;
       }
       if (reply.action === "cancel") {
@@ -1508,6 +1746,7 @@
       const raw = String(text || "").trim();
       if (!raw) return;
       userSay(raw);
+      showTyping();
       const reply = await getReply(history);
       applyReply(reply);
     }
@@ -1518,7 +1757,12 @@
         cancelAndRestart();
         return;
       }
+      if (value.indexOf("ai:") === 0 || C.aiEndpoint) {
+        handleTyped(label);
+        return;
+      }
       userSay(label);
+      showTyping();
       if (value.startsWith("br:")) {
         state.branch = value.slice(3);
         if (!state.service) {
