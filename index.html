@@ -137,6 +137,7 @@
       },
       walkIns: "Walk-ins are welcome if a chair is free. Bookings take priority, especially on Saturdays.",
       cancellation: "Cancel free of charge up to 2 hours before your time. If it is later than that, please call the shop so we can try to fill the chair.",
+      contactPrivacy: "Phone and email are only used for your booking, so the shop can reach you and you can easily change or cancel.",
       late: "We hold a booking for 10 minutes. After that the slot may go to a walk-in, and we will offer you the next free time.",
       noShow: "Please cancel if you cannot come. After two no-shows we may ask you to book by phone only.",
       kids: "The kids cut is for children under 12, €12, about 25 minutes. An adult should stay with them. Under 3s are only by a quick phone chat first, so we know they will be comfortable. Age 12 and over is a regular haircut.",
@@ -607,6 +608,8 @@
     .booked-card dd { margin: 0; }
     .booked-card .pay { color: var(--muted); font-weight: 500; }
     .booked-card .ref { font-variant-numeric: tabular-nums; letter-spacing: 0.04em; font-weight: 700; }
+    .booked-card.cancelled h3 { color: var(--soft); }
+    .booked-card.updated h3 { color: var(--gold-2); }
     .booked-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
     .booked-actions .btn { padding: 9px 14px; font-size: 13px; }
     .composer {
@@ -1015,6 +1018,164 @@
     function saveBookings(list) {
       try { localStorage.setItem(STORE_KEY, JSON.stringify(list)); } catch (e) {}
     }
+    function bookingsPayload() {
+      return loadBookings().map(function (b) {
+        return {
+          ref: b.ref,
+          name: b.name,
+          phone: b.phone || "",
+          email: b.email || "",
+          branch: b.branchName || b.branch,
+          service: b.service,
+          date: b.stamp,
+          time: b.time,
+          when: b.when,
+          barber: b.barberFirst || (b.barber ? String(b.barber).split(/\s+/)[0] : "")
+        };
+      });
+    }
+    function normalizePhone(raw) {
+      const compact = String(raw || "").trim().replace(/[\s().-]/g, "");
+      if (/^\+356\d{8}$/.test(compact)) return compact;
+      if (/^00356\d{8}$/.test(compact)) return "+356" + compact.slice(5);
+      if (/^356\d{8}$/.test(compact)) return "+" + compact;
+      if (/^\d{8}$/.test(compact)) return "+356" + compact;
+      return null;
+    }
+    function normalizeEmail(raw) {
+      const s = String(raw || "").trim();
+      if (!s || s.length > 80 || /\s/.test(s)) return null;
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s)) return null;
+      if (s.indexOf("..") !== -1) return null;
+      return s;
+    }
+    function normalizeRef(s) {
+      return String(s || "").toUpperCase().replace(/\s+/g, "").replace(/^#/, "");
+    }
+    function extractRef(raw) {
+      const m = String(raw || "").toUpperCase().match(/\b[A-Z]{2,3}-[A-Z0-9]{3,6}\b/);
+      return m ? m[0] : null;
+    }
+    function findBookingByRef(ref) {
+      const key = normalizeRef(ref);
+      if (!key) return null;
+      return loadBookings().find(function (b) { return normalizeRef(b.ref) === key; }) || null;
+    }
+    function findBookingsByQuery(query) {
+      const raw = String(query || "").trim();
+      const list = loadBookings();
+      if (!raw) return list.slice();
+      const ref = extractRef(raw) || (normalizeRef(raw).indexOf("-") !== -1 ? normalizeRef(raw) : null);
+      const phone = normalizePhone(raw);
+      const email = normalizeEmail(raw);
+      const nameQ = raw.toLowerCase();
+      return list.filter(function (b) {
+        if (ref && normalizeRef(b.ref) === normalizeRef(ref)) return true;
+        if (phone && b.phone && normalizePhone(b.phone) === phone) return true;
+        if (email && b.email && String(b.email).toLowerCase() === email.toLowerCase()) return true;
+        if (b.name && b.name.toLowerCase() === nameQ) return true;
+        if (b.name && nameQ.length >= 3 && !phone && !email && !ref && b.name.toLowerCase().indexOf(nameQ) !== -1) return true;
+        return false;
+      });
+    }
+    function extractLookup(raw) {
+      const text = String(raw || "").trim();
+      const ref = extractRef(text);
+      if (ref) return ref;
+      const phone = normalizePhone(text);
+      if (phone) return phone;
+      const email = normalizeEmail(text);
+      if (email) return email;
+      if (looksLikeName(text)) return text.replace(/\s+/g, " ");
+      return null;
+    }
+    function minutesUntilBooking(b) {
+      if (!b || !b.stamp || !b.time) return null;
+      const parts = b.stamp.split("-").map(Number);
+      const hm = b.time.split(":").map(Number);
+      const now = maltaNow();
+      return (Date.UTC(parts[0], parts[1] - 1, parts[2], hm[0], hm[1]) - Date.UTC(now.y, now.mo - 1, now.d, now.hour, now.minute)) / 60000;
+    }
+    function isLateCancel(b) {
+      const m = minutesUntilBooking(b);
+      return m != null && m < 120;
+    }
+    function shopPhoneHtml() {
+      const phone = C.phone || "";
+      const href = "tel:" + phone.replace(/\s/g, "");
+      return "<a href='" + escapeHtml(href) + "'>" + escapeHtml(phone) + "</a>";
+    }
+    function bookingWhenPhrase(b) {
+      if (!b) return "";
+      const now = maltaNow();
+      let off = null;
+      for (let i = -1; i <= 14; i++) {
+        if (dateStamp(now, i) === b.stamp) { off = i; break; }
+      }
+      const day = off === 0 ? "today" : off === 1 ? "tomorrow" : (b.when ? b.when.replace(/\s+at\s+.*$/, "") : b.stamp);
+      const barberFirst = b.barberFirst || (b.barber ? String(b.barber).split(/\s+/)[0] : "");
+      const svc = String(b.service || "appointment").toLowerCase();
+      let phrase = "your " + escapeHtml(svc) + " " + escapeHtml(day) + " at " + escapeHtml(b.time);
+      if (barberFirst) phrase += " with " + escapeHtml(barberFirst);
+      return phrase;
+    }
+    function setComposerMode(kind) {
+      const input = $("chatInput");
+      if (!input) return;
+      if (kind === "tel") {
+        input.setAttribute("autocomplete", "tel");
+        input.setAttribute("inputmode", "tel");
+        input.placeholder = "Phone number…";
+      } else if (kind === "email") {
+        input.setAttribute("autocomplete", "email");
+        input.setAttribute("inputmode", "email");
+        input.placeholder = "Email address…";
+      } else if (kind === "name") {
+        input.setAttribute("autocomplete", "name");
+        input.setAttribute("inputmode", "text");
+        input.placeholder = "Your name…";
+      } else {
+        input.setAttribute("autocomplete", "off");
+        input.setAttribute("inputmode", "text");
+        input.placeholder = "Type a reply…";
+      }
+    }
+    function bookingCardHtml(kind, booking, notified) {
+      const title = kind === "cancelled" ? "Cancelled" : kind === "updated" ? "Updated" : "Booked ✓";
+      return "<h3>" + title + "</h3>" +
+        "<p class='notified'>" + escapeHtml(notified) + "</p>" +
+        "<dl>" +
+        "<dt>Name</dt><dd>" + escapeHtml(booking.name) + "</dd>" +
+        "<dt>Branch</dt><dd>" + escapeHtml(booking.branchName || booking.branch) + "</dd>" +
+        (booking.barber ? "<dt>Barber</dt><dd>" + escapeHtml(booking.barber) + "</dd>" : "") +
+        "<dt>Service</dt><dd>" + escapeHtml(booking.service) + "</dd>" +
+        "<dt>Price</dt><dd>" + euro(booking.price) + " <span class='pay'>pay in shop</span></dd>" +
+        "<dt>When</dt><dd>" + escapeHtml(booking.when) + "</dd>" +
+        (booking.phone ? "<dt>Phone</dt><dd>" + escapeHtml(booking.phone) + "</dd>" : "") +
+        (booking.email ? "<dt>Email</dt><dd>" + escapeHtml(booking.email) + "</dd>" : "") +
+        "<dt>Reference</dt><dd class='ref'>" + escapeHtml(booking.ref) + "</dd>" +
+        "</dl>" +
+        (kind === "cancelled" ? "" : (
+          "<div class='booked-actions'>" +
+          "<button type='button' class='btn btn-gold' id='addCal'>Add to calendar</button>" +
+          "<button type='button' class='btn btn-ghost' id='cancelChange'>Cancel / change</button>" +
+          "</div>"
+        ));
+    }
+    function showStatusCard(kind, booking, notified, histText) {
+      const card = document.createElement("div");
+      card.className = "booked-card" + (kind === "cancelled" || kind === "updated" ? " " + kind : "");
+      card.innerHTML = bookingCardHtml(kind, booking, notified);
+      const gen = talkGen;
+      afterBot(async function () {
+        const ok = await finishTyping(histText, gen);
+        if (!ok) return;
+        replies.innerHTML = "";
+        msgs.appendChild(card);
+        history.push({ role: "assistant", text: histText });
+        msgs.scrollTop = msgs.scrollHeight;
+      });
+    }
     function stampOf(dateObj) {
       return dateObj.y + "-" + String(dateObj.mo).padStart(2, "0") + "-" + String(dateObj.d).padStart(2, "0");
     }
@@ -1056,9 +1217,12 @@
       dayOffset: null,
       time: null,
       name: "",
+      phone: "",
+      email: "",
       ref: "",
       booking: null,
-      step: "branch"
+      step: "branch",
+      pendingAction: null
     };
     let history = [];
 
@@ -1250,21 +1414,274 @@
       state.dayOffset = null;
       state.time = null;
       state.name = "";
+      state.phone = "";
+      state.email = "";
       state.ref = "";
       state.booking = null;
+      state.pendingAction = null;
       state.step = "branch";
+      setComposerMode("");
       setComposerVisible(true);
       renderServices();
       updateSticky();
     }
 
-    function cancelAndRestart() {
-      if (state.booking && state.booking.ref) {
-        saveBookings(loadBookings().filter(function (b) { return b.ref !== state.booking.ref; }));
-      }
+    function abortDraft(msg) {
       resetBooking(false);
       renderSlots();
-      startConversation();
+      state.step = "idle";
+      setComposerVisible(true);
+      setComposerMode("");
+      botSay(msg || "Of course — I've stopped that. If you'd like to book another time, or you need anything else, just let me know.");
+      clearReplies();
+    }
+    function noMatchReply() {
+      state.pendingAction = { type: "lookup", intent: (state.pendingAction && state.pendingAction.intent) || "cancel" };
+      return {
+        html: "I couldn't find a booking with those details. If you think that's a mistake, you're welcome to call the shop on " + shopPhoneHtml() + " and they'll help.",
+        replies: []
+      };
+    }
+    function askLookup(intent) {
+      state.pendingAction = { type: "lookup", intent: intent };
+      setComposerVisible(true);
+      setComposerMode("");
+      const verb = intent === "reschedule" ? "change" : "cancel";
+      return {
+        html: "Of course — I can help you " + verb + " a reservation. Could you please share the reference code, the name on the booking, or the phone or email you used?",
+        replies: [],
+        focus: true
+      };
+    }
+    function proposeCancel(b) {
+      if (!b) return noMatchReply();
+      state.pendingAction = { type: "cancel", ref: b.ref };
+      setComposerVisible(true);
+      return {
+        html: "Would you like me to cancel " + bookingWhenPhrase(b) + "?",
+        replies: [
+          { label: "Yes, please cancel", value: "cancel-yes:" + b.ref },
+          { label: "No, keep it", value: "cancel-no" }
+        ]
+      };
+    }
+    function executeCancel(ref, spoken) {
+      const b = findBookingByRef(ref);
+      state.pendingAction = null;
+      if (!b) {
+        botSay("I couldn't find that booking any more. If you need a hand, please call the shop on " + shopPhoneHtml() + ".");
+        clearReplies();
+        return;
+      }
+      saveBookings(loadBookings().filter(function (x) { return x.ref !== b.ref; }));
+      renderSlots();
+      if (state.booking && state.booking.ref === b.ref) {
+        state.booking = null;
+        state.ref = "";
+        state.step = "idle";
+      }
+      setComposerVisible(true);
+      setComposerMode("");
+      const late = isLateCancel(b);
+      const soft = " If you'd like to rebook another time, I'm happy to help.";
+      let msg;
+      if (spoken) {
+        msg = spoken;
+      } else if (late) {
+        msg = "I've noted the cancellation of " + bookingWhenPhrase(b) + ". Because it's within two hours of the appointment, it would help if you could also call the shop on " + shopPhoneHtml() + ", so they can try to fill the chair." + soft;
+      } else {
+        msg = "I've cancelled " + bookingWhenPhrase(b) + ". The slot is free again." + soft;
+      }
+      const notified = late
+        ? "We've noted the cancellation — please also call the shop"
+        : "The booking has been cancelled";
+      const hist = late
+        ? "Noted cancellation of " + b.ref + " (within 2 hours). Please call the shop. If you'd like to rebook another time, I'm happy to help."
+        : "Cancelled " + b.ref + ". The slot is free again. If you'd like to rebook another time, I'm happy to help.";
+      botSay(msg);
+      showStatusCard("cancelled", b, notified, hist);
+    }
+    function rescheduleSlots(b) {
+      const br = findBranch(b.branchName || b.branch) || brById(b.branch);
+      if (!br) return [];
+      const now = maltaNow();
+      const out = [];
+      for (let i = 0; i <= 4; i++) {
+        const stamp = dateStamp(now, i);
+        slotsFor(br, now, i).forEach(function (tm) {
+          if (stamp === b.stamp && tm === b.time) return;
+          const barber = barberForSlot(br.id, stamp, tm);
+          out.push({
+            label: dateLabel(now, i) + " " + tm,
+            value: "move:" + b.ref + ":" + stamp + ":" + tm,
+            stamp: stamp,
+            time: tm,
+            offset: i,
+            barber: barber
+          });
+        });
+        if (out.length >= 8) break;
+      }
+      return out.slice(0, 8);
+    }
+    function proposeReschedule(b) {
+      if (!b) return noMatchReply();
+      const slots = rescheduleSlots(b);
+      if (!slots.length) {
+        state.pendingAction = null;
+        return {
+          html: "I don't have another free time at " + escapeHtml(b.branchName || b.branch) + " in the next few days. You're welcome to call the shop on " + shopPhoneHtml() + ".",
+          replies: []
+        };
+      }
+      state.pendingAction = { type: "reschedule-pick", ref: b.ref };
+      return {
+        html: "Of course — I can move " + bookingWhenPhrase(b) + ". Which of these times would work better?",
+        replies: slots
+      };
+    }
+    function proposeMoveTo(b, stamp, time) {
+      const br = findBranch(b.branchName || b.branch) || brById(b.branch);
+      const now = maltaNow();
+      let off = null;
+      for (let i = 0; i <= 14; i++) {
+        if (dateStamp(now, i) === stamp) { off = i; break; }
+      }
+      if (off == null || !br || slotsFor(br, now, off).indexOf(time) === -1) {
+        return { html: "That time isn't free. You can pick one of the times below.", replies: rescheduleSlots(b) };
+      }
+      const barber = barberForSlot(br.id, stamp, time);
+      const first = barberFirstName(barber);
+      const whenWord = off === 0 ? "today" : off === 1 ? "tomorrow" : longDate(now, off);
+      state.pendingAction = { type: "reschedule", ref: b.ref, date: stamp, time: time };
+      return {
+        html: "Shall I move " + bookingWhenPhrase(b).replace(/^your /, "your ") + " to <b>" + escapeHtml(time) + "</b> " + escapeHtml(whenWord) + (first ? ", with " + escapeHtml(first) : "") + "?",
+        replies: [
+          { label: "Yes, please move it", value: "move-yes:" + b.ref + ":" + stamp + ":" + time },
+          { label: "No, keep the original time", value: "move-no" }
+        ]
+      };
+    }
+    function executeReschedule(ref, stamp, time, spoken) {
+      const b = findBookingByRef(ref);
+      state.pendingAction = null;
+      if (!b) {
+        botSay("I couldn't find that booking any more. If you need a hand, please call the shop on " + shopPhoneHtml() + ".");
+        clearReplies();
+        return;
+      }
+      const br = findBranch(b.branchName || b.branch) || brById(b.branch);
+      const now = maltaNow();
+      let off = null;
+      for (let i = 0; i <= 14; i++) {
+        if (dateStamp(now, i) === stamp) { off = i; break; }
+      }
+      if (off == null || !br || slotsFor(br, now, off).indexOf(time) === -1) {
+        applyReply({ html: "That time isn't free any more. You can pick one of the times below.", replies: rescheduleSlots(b) });
+        return;
+      }
+      const barber = barberForSlot(br.id, stamp, time);
+      const updated = Object.assign({}, b, {
+        branch: br.id,
+        branchName: br.name,
+        address: br.address,
+        stamp: stamp,
+        time: time,
+        when: longDate(now, off) + " at " + time,
+        barber: barber ? barber.name : "",
+        barberFirst: barberFirstName(barber)
+      });
+      const list = loadBookings().filter(function (x) { return x.ref !== b.ref; });
+      list.push(updated);
+      saveBookings(list);
+      renderSlots();
+      state.booking = updated;
+      state.ref = updated.ref;
+      state.branch = br.id;
+      state.dayOffset = off;
+      state.time = time;
+      state.step = "done";
+      setComposerVisible(true);
+      setComposerMode("");
+      const first = updated.barberFirst;
+      const msg = spoken || ("Of course — I've moved your " + escapeHtml(String(updated.service || "appointment").toLowerCase()) + " to <b>" + escapeHtml(time) + "</b> " + escapeHtml(off === 0 ? "today" : off === 1 ? "tomorrow" : longDate(now, off)) + (first ? ", with " + escapeHtml(first) : "") + ".");
+      botSay(msg);
+      showStatusCard("updated", updated, "Your reservation has been updated", "Updated " + updated.ref + " to " + updated.when + (first ? " with " + updated.barber : "") + ".");
+    }
+    function startManage(intent, raw) {
+      const lookup = extractLookup(raw);
+      let matches;
+      if (lookup) matches = findBookingsByQuery(lookup);
+      else if (state.booking && state.booking.ref && findBookingByRef(state.booking.ref)) matches = [findBookingByRef(state.booking.ref)];
+      else matches = loadBookings();
+      if (!matches.length) {
+        if (lookup) return noMatchReply();
+        if (!loadBookings().length) return {
+          html: "I couldn't find a booking on this device. If you booked under another name or phone, or you think this is a mistake, you're welcome to call the shop on " + shopPhoneHtml() + " and they'll help.",
+          replies: []
+        };
+        return askLookup(intent);
+      }
+      if (matches.length > 1) {
+        state.pendingAction = { type: "lookup", intent: intent };
+        return {
+          html: "I found more than one booking. Could you please share the reference, or the phone or email you used, so I can be sure I have the right one?",
+          replies: matches.slice(0, 4).map(function (b) {
+            return { label: (b.ref || "") + " · " + (b.time || ""), value: (intent === "reschedule" ? "rsv-pick:" : "cancel-pick:") + b.ref };
+          })
+        };
+      }
+      return intent === "reschedule" ? proposeReschedule(matches[0]) : proposeCancel(matches[0]);
+    }
+    function pendingLocalReply(raw) {
+      const t = String(raw || "").trim();
+      const pending = state.pendingAction;
+      if (!pending) return null;
+      const yes = /^(y|yes|yeah|yep|please|ok|okay|sure|confirm|do it|go ahead|please cancel|yes,? please( cancel| move( it)?)?)$/i.test(t) || /(yes,? please cancel|please cancel( it)?|yes,? move it)/i.test(t);
+      const no = /^(n|no|nope|don't|dont|keep it|never mind|stop)$/i.test(t) || /(no,? keep( it)?|don't cancel|do not cancel|keep the original)/i.test(t);
+      if (pending.type === "cancel") {
+        if (yes) return { action: "cancel", ref: pending.ref };
+        if (no) {
+          state.pendingAction = null;
+          return { html: "Of course — I'll leave " + bookingWhenPhrase(findBookingByRef(pending.ref)) + " as it is.", replies: [] };
+        }
+      }
+      if (pending.type === "reschedule" && pending.date && pending.time) {
+        if (yes) return { action: "reschedule", reschedule: { ref: pending.ref, date: pending.date, time: pending.time } };
+        if (no) {
+          const b = findBookingByRef(pending.ref);
+          state.pendingAction = { type: "reschedule-pick", ref: pending.ref };
+          return { html: "No problem — I'll keep the original time. Would you like to pick a different one?", replies: b ? rescheduleSlots(b) : [] };
+        }
+      }
+      if (pending.type === "reschedule-pick") {
+        const b = findBookingByRef(pending.ref);
+        if (!b) return noMatchReply();
+        const tm = (t.match(/\b(\d{1,2}:\d{2})\b/) || [])[1];
+        if (tm) {
+          const now = maltaNow();
+          const hh = tm.length === 4 ? "0" + tm : tm;
+          let stamp = b.stamp;
+          if (/tomorrow/.test(t.toLowerCase())) stamp = dateStamp(now, 1);
+          else if (/today/.test(t.toLowerCase())) stamp = dateStamp(now, 0);
+          else {
+            const slots = rescheduleSlots(b);
+            const hit = slots.find(function (s) { return s.time === hh && (s.label.toLowerCase().indexOf(t.toLowerCase()) !== -1 || true); });
+            // prefer a slot whose label is in the text, else first matching time
+            const labelled = slots.find(function (s) { return s.time === hh && t.toLowerCase().indexOf(s.label.toLowerCase()) !== -1; });
+            const byTime = slots.filter(function (s) { return s.time === hh; });
+            const chosen = labelled || (byTime.length === 1 ? byTime[0] : null);
+            if (chosen) return proposeMoveTo(b, chosen.stamp, chosen.time);
+            if (byTime.length) return proposeMoveTo(b, byTime[0].stamp, byTime[0].time);
+          }
+          return proposeMoveTo(b, stamp, hh);
+        }
+      }
+      if (pending.type === "lookup") {
+        const lookup = extractLookup(t);
+        if (lookup) return startManage(pending.intent || "cancel", lookup);
+      }
+      return null;
     }
 
     function startConversation(opts) {
@@ -1329,9 +1746,40 @@
 
     function askName() {
       state.step = "name";
+      setComposerMode("name");
       botSay(nameAskHtml());
       clearReplies();
       $("chatInput").focus();
+    }
+    function phoneAskHtml() {
+      const who = state.name ? ", <b>" + escapeHtml(state.name) + "</b>" : "";
+      return "Thank you" + who + ". Could I please have a phone number so the shop can reach you if needed, and so you can easily change or cancel? It's only used for your booking. A Maltese number is fine — with +356 or just the eight digits.";
+    }
+    function emailAskHtml() {
+      return "And an email address, please, for the same reason — only used for your booking.";
+    }
+    function askPhone() {
+      state.step = "phone";
+      setComposerVisible(true);
+      setComposerMode("tel");
+      botSay(phoneAskHtml());
+      clearReplies();
+      $("chatInput").focus();
+    }
+    function askEmail() {
+      state.step = "email";
+      setComposerVisible(true);
+      setComposerMode("email");
+      botSay(emailAskHtml());
+      clearReplies();
+      $("chatInput").focus();
+    }
+    function tryCompleteBooking() {
+      if (!state.name || !state.branch || !state.service || state.time == null || state.dayOffset == null) return false;
+      if (!state.phone) { askPhone(); return true; }
+      if (!state.email) { askEmail(); return true; }
+      confirmBooking();
+      return true;
     }
 
     function makeRef() {
@@ -1413,7 +1861,9 @@
         time: state.time,
         when: when,
         barber: barber ? barber.name : "",
-        barberFirst: barberFirstName(barber)
+        barberFirst: barberFirstName(barber),
+        phone: state.phone,
+        email: state.email
       };
       state.ref = ref;
       state.booking = booking;
@@ -1422,35 +1872,13 @@
       saveBookings(list);
       renderSlots();
       updateSticky();
-      setComposerVisible(false);
-      const card = document.createElement("div");
-      card.className = "booked-card";
-      card.innerHTML =
-        "<h3>Booked ✓</h3>" +
-        "<p class='notified'>The shop has been notified</p>" +
-        "<dl>" +
-        "<dt>Name</dt><dd>" + escapeHtml(booking.name) + "</dd>" +
-        "<dt>Branch</dt><dd>" + escapeHtml(booking.branchName) + "</dd>" +
-        (booking.barber ? "<dt>Barber</dt><dd>" + escapeHtml(booking.barber) + "</dd>" : "") +
-        "<dt>Service</dt><dd>" + escapeHtml(booking.service) + "</dd>" +
-        "<dt>Price</dt><dd>" + euro(booking.price) + " <span class='pay'>pay in shop</span></dd>" +
-        "<dt>When</dt><dd>" + escapeHtml(booking.when) + "</dd>" +
-        "<dt>Reference</dt><dd class='ref'>" + escapeHtml(booking.ref) + "</dd>" +
-        "</dl>" +
-        "<div class='booked-actions'>" +
-        "<button type='button' class='btn btn-gold' id='addCal'>Add to calendar</button>" +
-        "<button type='button' class='btn btn-ghost' id='cancelChange'>Cancel / change</button>" +
-        "</div>";
-      const gen = talkGen;
+      setComposerVisible(true);
+      setComposerMode("");
+      const first = booking.name ? escapeHtml(booking.name.split(/\s+/)[0]) : "";
+      const thanks = "Thank you" + (first ? ", " + first : "") + ". Your " + escapeHtml(String(booking.service || "appointment").toLowerCase()) + " is booked for " + escapeHtml(booking.when) + (booking.barberFirst ? " with " + escapeHtml(booking.barberFirst) : "") + " at " + escapeHtml(booking.branchName) + ".";
+      botSay(thanks);
       const histText = "Booked " + booking.ref + " for " + booking.name + ", " + booking.service + " at " + booking.branchName + (booking.barber ? " with " + booking.barber : "") + ", " + booking.when + ". Pay in shop. The shop has been notified.";
-      afterBot(async function () {
-        const ok = await finishTyping(histText, gen);
-        if (!ok) return;
-        replies.innerHTML = "";
-        msgs.appendChild(card);
-        history.push({ role: "assistant", text: histText });
-        msgs.scrollTop = msgs.scrollHeight;
-      });
+      showStatusCard("booked", booking, "The shop has been notified", histText);
     }
 
     function looksLikeName(raw) {
@@ -1467,8 +1895,11 @@
 
     function detectIntent(text) {
       const t = text.toLowerCase().trim();
-      if (/^(start over|restart|reset|cancel)$/.test(t) || /\b(cancel( the)? (booking|appointment)|never mind|forget it|start over|start again)\b/.test(t)) return "cancel";
-      if (/\b(change|cancel).*\b(booking|appointment)\b/.test(t) || /^cancel\s*\/\s*change$/.test(t)) return "cancel";
+      if (/\b(reschedule|re-schedule|change my (booking|appointment|time|reservation)|move my (booking|appointment|reservation)|change the (time|day|date)|pick a different time)\b/.test(t)) return "manage_reschedule";
+      if (/\b((i )?(need|want|have) to cancel|can i cancel|please cancel|cancel( my| the| this)? (booking|appointment|reservation)|cancel it|cancel that)\b/.test(t)) return "manage_cancel";
+      if (/^cancel\s*\/\s*change$/.test(t) || /^(cancel or change|change or cancel)$/.test(t)) return "manage_choose";
+      if (/^(start over|restart|reset|never mind|forget it)$/.test(t) || /\b(start over|start again|forget it)\b/.test(t)) return "abort";
+      if (/^cancel$/.test(t)) return (loadBookings().length || state.booking) ? "manage_cancel" : "abort";
       if (/\b(earlier|sooner|before that)\b/.test(t)) return "earlier";
       if (/\b(later|after that)\b/.test(t)) return "later";
       if (/\b(better time|another time|different time|other time|other slot|another slot|more times|any other time|else available|different slot)\b/.test(t)) return "other_time";
@@ -1508,7 +1939,16 @@
       if (state.step === "day") return { html: b ? "When would you like to come into <b>" + escapeHtml(b.name) + "</b>?" : "Which day works?", replies: dayReplies() };
       if (state.step === "time") return { html: "Which time works for you?", replies: timeReplies() };
       if (state.step === "name") {
+        setComposerMode("name");
         return { html: (s && b && state.time) ? nameAskHtml() : "Could you please give me your name so we can proceed with your reservation?", replies: [], focus: true };
+      }
+      if (state.step === "phone") {
+        setComposerMode("tel");
+        return { html: phoneAskHtml(), replies: [], focus: true };
+      }
+      if (state.step === "email") {
+        setComposerMode("email");
+        return { html: emailAskHtml(), replies: [], focus: true };
       }
       if (state.step === "done") return { html: "Your reservation is confirmed. You can add it to your calendar, or cancel or change it if you need to.", replies: [] };
       return { html: "", replies: [] };
@@ -1554,7 +1994,21 @@
     function intentReply(intent) {
       const s = svcById(state.service);
       const b = brById(state.branch);
-      if (intent === "cancel") return { action: "cancel" };
+      if (intent === "manage_cancel") return startManage("cancel", "");
+      if (intent === "manage_reschedule") return startManage("reschedule", "");
+      if (intent === "manage_choose") {
+        const b = state.booking || (loadBookings()[0] || null);
+        if (!b) return startManage("cancel", "");
+        state.pendingAction = { type: "lookup", intent: "choose", ref: b.ref };
+        return {
+          html: "Would you like to cancel " + bookingWhenPhrase(b) + ", or change the time?",
+          replies: [
+            { label: "Cancel the booking", value: "cancel-pick:" + b.ref },
+            { label: "Change the time", value: "rsv-pick:" + b.ref }
+          ]
+        };
+      }
+      if (intent === "abort") return { action: "abort" };
       if (intent === "price") {
         const html = s
           ? "A <b>" + escapeHtml(s.name) + "</b> is <b>" + euro(s.price) + "</b>, paid in the shop."
@@ -1602,16 +2056,45 @@
       const t = raw.toLowerCase();
       const intent = detectIntent(raw);
 
+      const local = pendingLocalReply(raw);
+      if (local) return local;
+
+      if (intent === "manage_cancel" || intent === "manage_reschedule" || intent === "manage_choose" || intent === "abort") {
+        return intentReply(intent);
+      }
+
       if (state.step === "done") {
-        if (intent === "cancel" || /\b(change|cancel)\b/.test(t)) return { action: "cancel" };
+        if (intent === "manage_cancel") return startManage("cancel", raw);
+        if (intent === "manage_reschedule" || intent === "manage_choose") return intentReply(intent || "manage_choose");
         if (/\b(calendar|ics|download)\b/.test(t)) return { html: "Tap <b>Add to calendar</b> to download an .ics file.", replies: [] };
         return { html: "Your reservation is confirmed. You can add it to your calendar, or cancel or change it if you need to.", replies: [] };
       }
 
       if (intent) return intentReply(intent);
 
+      if (state.step === "phone") {
+        const phone = normalizePhone(raw);
+        if (phone) {
+          state.phone = phone;
+          if (!state.email) return { html: emailAskHtml(), focus: true, patch: { step: "email" } };
+          return { action: "confirm" };
+        }
+        return { html: "I couldn't quite read that number. Please use +356 followed by 8 digits, or just the local 8 digits — for example +356 7900 0000. It's only used for your booking.", replies: [], focus: true };
+      }
+      if (state.step === "email") {
+        const email = normalizeEmail(raw);
+        if (email) {
+          state.email = email;
+          return { action: "confirm" };
+        }
+        return { html: "That email doesn't look quite right. Could you please check it and try again? It's only used for your booking.", replies: [], focus: true };
+      }
+
       if (state.step === "name") {
-        if (looksLikeName(raw)) return { action: "confirm", name: raw.replace(/\s+/g, " ") };
+        if (looksLikeName(raw)) {
+          state.name = raw.replace(/\s+/g, " ");
+          return { html: phoneAskHtml(), focus: true, patch: { step: "phone", name: state.name } };
+        }
         const svc = matchService(t);
         if (svc) {
           state.service = svc;
@@ -1720,6 +2203,8 @@
       state.dayOffset = offset;
       state.time = time;
       state.name = name;
+      if (bk.phone && normalizePhone(bk.phone)) state.phone = normalizePhone(bk.phone);
+      if (bk.email && normalizeEmail(bk.email)) state.email = normalizeEmail(bk.email);
       return true;
     }
 
@@ -1737,6 +2222,8 @@
       if (state.time) out.time = state.time;
       if (barber) { out.barber = barberFirstName(barber); out.barberFull = barber.name; }
       if (state.name) out.name = state.name;
+      if (state.phone) out.phone = state.phone;
+      if (state.email) out.email = state.email;
       return out;
     }
 
@@ -1760,7 +2247,8 @@
               knowledge: C.knowledge || {},
               slots: slotsPayload(),
               today: todayLabel(),
-              selected: selectedPayload()
+              selected: selectedPayload(),
+              bookings: bookingsPayload()
             })
           });
           if (res.ok) {
@@ -1778,30 +2266,132 @@
       return scriptedReply(hist);
     }
 
+    function isManageAction(reply) {
+      if (!reply) return false;
+      const a = reply.action;
+      return a === "cancel" || a === "reschedule" || a === "propose_cancel" || a === "propose_reschedule" || a === "abort";
+    }
+    function mapQuickReplies(reply) {
+      if (reply.replies && reply.replies.length) return reply.replies;
+      if (!reply.quickReplies || !reply.quickReplies.length) return [];
+      return reply.quickReplies.map(function (label) {
+        const v = String(label || "");
+        const low = v.toLowerCase();
+        if (reply.ref && /cancel/.test(low) && /yes|please/.test(low)) return { label: v, value: "cancel-yes:" + reply.ref };
+        if (/keep|don't cancel|do not cancel|no,/.test(low) && reply.action === "propose_cancel") return { label: v, value: "cancel-no" };
+        if (reply.reschedule && reply.reschedule.ref && /yes|move|please/.test(low)) {
+          return { label: v, value: "move-yes:" + reply.reschedule.ref + ":" + reply.reschedule.date + ":" + reply.reschedule.time };
+        }
+        return { label: v, value: "ai:" + v };
+      });
+    }
     function applyReply(reply) {
       if (!reply) return;
       if (reply.patch) Object.assign(state, reply.patch);
-      if (reply.action === "confirm" || (reply.booking && hydrateBooking(reply.booking))) {
-        if (reply.name) state.name = reply.name;
-        if (reply.booking && !state.name && reply.booking.name) state.name = reply.booking.name;
-        if (reply.text || reply.html) botSay(reply.html || escapeHtml(reply.text));
-        if (state.name && state.branch && state.service && state.time != null && state.dayOffset != null) confirmBooking();
+      if (reply.action === "abort") {
+        abortDraft(reply.html || reply.text || "");
         updateSticky();
         return;
       }
-      if (reply.action === "cancel") {
-        cancelAndRestart();
+      if (reply.action === "propose_cancel" && (reply.ref || (reply.booking && reply.booking.ref))) {
+        const ref = reply.ref || reply.booking.ref;
+        const b = findBookingByRef(ref);
+        if (b) {
+          const proposed = proposeCancel(b);
+          if (reply.text || reply.html) proposed.html = reply.html || escapeHtml(reply.text);
+          botSay(proposed.html);
+          replyButtons(mapQuickReplies(reply).length ? mapQuickReplies(reply) : proposed.replies);
+          updateSticky();
+          return;
+        }
+      }
+      if (reply.action === "cancel" && reply.ref) {
+        executeCancel(reply.ref, reply.html || reply.text || "");
+        updateSticky();
         return;
+      }
+      if (reply.action === "propose_reschedule" && reply.ref) {
+        const b = findBookingByRef(reply.ref);
+        if (b) {
+          const proposed = proposeReschedule(b);
+          if (reply.text || reply.html) proposed.html = reply.html || escapeHtml(reply.text);
+          botSay(proposed.html);
+          replyButtons((mapQuickReplies(reply).length && !/cancel/i.test((reply.quickReplies || []).join(" "))) ? mapQuickReplies(reply) : proposed.replies);
+          updateSticky();
+          return;
+        }
+      }
+      if (reply.action === "reschedule" && reply.reschedule && reply.reschedule.ref && reply.reschedule.date && reply.reschedule.time) {
+        executeReschedule(reply.reschedule.ref, reply.reschedule.date, reply.reschedule.time, reply.html || reply.text || "");
+        updateSticky();
+        return;
+      }
+      if (reply.action === "confirm" || reply.action === "book" || (reply.booking && hydrateBooking(reply.booking))) {
+        if (reply.name) state.name = reply.name;
+        if (reply.booking) {
+          if (reply.booking.name) state.name = reply.booking.name;
+          if (reply.booking.phone && normalizePhone(reply.booking.phone)) state.phone = normalizePhone(reply.booking.phone);
+          if (reply.booking.email && normalizeEmail(reply.booking.email)) state.email = normalizeEmail(reply.booking.email);
+        }
+        const askedPhone = /phone|mobile|number/i.test(reply.text || reply.html || "");
+        const askedEmail = /e-?mail/i.test(reply.text || reply.html || "");
+        if (state.name && state.branch && state.service && state.time != null && state.dayOffset != null) {
+          if (!state.phone) {
+            if (askedPhone && (reply.text || reply.html)) {
+              state.step = "phone";
+              setComposerMode("tel");
+              botSay(reply.html || escapeHtml(reply.text));
+              clearReplies();
+              $("chatInput").focus();
+            } else {
+              if (reply.text || reply.html) botSay(reply.html || escapeHtml(reply.text));
+              askPhone();
+            }
+            updateSticky();
+            return;
+          }
+          if (!state.email) {
+            if (askedEmail && (reply.text || reply.html)) {
+              state.step = "email";
+              setComposerMode("email");
+              botSay(reply.html || escapeHtml(reply.text));
+              clearReplies();
+              $("chatInput").focus();
+            } else {
+              if (reply.text || reply.html) botSay(reply.html || escapeHtml(reply.text));
+              askEmail();
+            }
+            updateSticky();
+            return;
+          }
+          if (reply.text || reply.html) botSay(reply.html || escapeHtml(reply.text));
+          confirmBooking();
+          updateSticky();
+          return;
+        }
       }
       if (reply.action === "step" && reply.value) {
         handleReply(reply.value, reply.label || reply.value);
         return;
       }
       if (reply.html || reply.text) botSay(reply.html || escapeHtml(reply.text));
-      if (reply.replies && reply.replies.length) replyButtons(reply.replies);
+      const repliesList = mapQuickReplies(reply);
+      if (repliesList.length) replyButtons(repliesList);
       else clearReplies();
       if (reply.focus) $("chatInput").focus();
       updateSticky();
+    }
+
+    function manageSafetyNet(raw, reply) {
+      const intent = detectIntent(raw);
+      if (intent !== "manage_cancel" && intent !== "manage_reschedule" && intent !== "manage_choose") return reply;
+      if (isManageAction(reply)) return reply;
+      const text = String(reply && (reply.text || reply.html) || "");
+      if (/proceed with booking|which branch would you|book a visit/i.test(text) && !/cancel your/i.test(text)) {
+        return intentReply(intent);
+      }
+      if (!reply || !(reply.text || reply.html)) return intentReply(intent);
+      return reply;
     }
 
     async function handleTyped(text) {
@@ -1809,14 +2399,92 @@
       if (!raw) return;
       userSay(raw);
       showTyping();
-      const reply = await getReply(history);
+      const local = pendingLocalReply(raw);
+      if (local) {
+        applyReply(local);
+        return;
+      }
+      const intent = detectIntent(raw);
+      if (intent === "abort") {
+        applyReply({ action: "abort" });
+        return;
+      }
+      if (intent === "manage_cancel" || intent === "manage_reschedule" || intent === "manage_choose") {
+        // still ask the assistant, but fall back to the local flow if it tries to start a new booking
+        const reply = manageSafetyNet(raw, await getReply(history));
+        applyReply(reply);
+        return;
+      }
+      if (state.step === "name" && looksLikeName(raw) && state.branch && state.service && state.time != null) {
+        state.name = raw.replace(/\s+/g, " ");
+        askPhone();
+        return;
+      }
+      if (state.step === "phone") {
+        const phone = normalizePhone(raw);
+        if (phone) { state.phone = phone; askEmail(); return; }
+        applyReply({ html: "I couldn't quite read that number. Please use +356 followed by 8 digits, or just the local 8 digits — for example +356 7900 0000. It's only used for your booking.", replies: [], focus: true });
+        return;
+      }
+      if (state.step === "email") {
+        const email = normalizeEmail(raw);
+        if (email) { state.email = email; tryCompleteBooking(); return; }
+        applyReply({ html: "That email doesn't look quite right. Could you please check it and try again? It's only used for your booking.", replies: [], focus: true });
+        return;
+      }
+      const reply = manageSafetyNet(raw, await getReply(history));
       applyReply(reply);
     }
 
     function handleReply(value, label) {
-      if (value === "reset" || value === "cancel") {
+      if (value === "reset") {
         userSay(label);
-        cancelAndRestart();
+        abortDraft();
+        return;
+      }
+      if (value.indexOf("cancel-yes:") === 0) {
+        userSay(label);
+        showTyping();
+        executeCancel(value.slice("cancel-yes:".length));
+        return;
+      }
+      if (value === "cancel-no") {
+        userSay(label);
+        showTyping();
+        applyReply(pendingLocalReply("no") || { html: "Of course — I'll leave your booking as it is.", replies: [] });
+        return;
+      }
+      if (value.indexOf("cancel-pick:") === 0) {
+        userSay(label);
+        showTyping();
+        applyReply(proposeCancel(findBookingByRef(value.slice("cancel-pick:".length))));
+        return;
+      }
+      if (value.indexOf("rsv-pick:") === 0) {
+        userSay(label);
+        showTyping();
+        applyReply(proposeReschedule(findBookingByRef(value.slice("rsv-pick:".length))));
+        return;
+      }
+      if (value.indexOf("move-yes:") === 0) {
+        userSay(label);
+        showTyping();
+        const parts = value.split(":");
+        executeReschedule(parts[1], parts[2], parts[3]);
+        return;
+      }
+      if (value === "move-no") {
+        userSay(label);
+        showTyping();
+        applyReply(pendingLocalReply("no") || { html: "No problem — I'll keep the original time.", replies: [] });
+        return;
+      }
+      if (value.indexOf("move:") === 0) {
+        userSay(label);
+        showTyping();
+        const parts = value.split(":");
+        const b = findBookingByRef(parts[1]);
+        applyReply(proposeMoveTo(b, parts[2], parts[3]));
         return;
       }
       if (value.indexOf("ai:") === 0 || C.aiEndpoint) {
@@ -1958,7 +2626,17 @@
       }
       if (e.target.closest("#cancelChange")) {
         e.preventDefault();
-        cancelAndRestart();
+        const b = state.booking || loadBookings()[loadBookings().length - 1];
+        if (!b) return;
+        openChat();
+        showTyping();
+        applyReply({
+          html: "Would you like to cancel " + bookingWhenPhrase(b) + ", or change the time?",
+          replies: [
+            { label: "Cancel the booking", value: "cancel-pick:" + b.ref },
+            { label: "Change the time", value: "rsv-pick:" + b.ref }
+          ]
+        });
       }
     });
 
