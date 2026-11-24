@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Your Barber Co. — Prices up front. Book in two taps.</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230c0b0a'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Georgia,serif' font-size='16' fill='%23d4a017'%3EY%3C/text%3E%3C/svg%3E">
   <meta name="description" content="Demo barber website for Malta shops. Services, example prices and next free slots on the first screen. Book in two taps or via chat.">
   <meta name="robots" content="noindex,nofollow">
   <!--
@@ -1300,12 +1301,12 @@
     function makeRef() {
       const parts = String(C.name || "BK").replace(/[^A-Za-z0-9 ]/g, " ").trim().split(/\s+/);
       const prefix = parts.map(function (w) { return w.charAt(0); }).join("").toUpperCase().slice(0, 3) || "BK";
-      let n = hash(state.name + "|" + state.branch + "|" + state.time + "|" + Date.now());
+      let n = hash(state.name + "|" + state.branch + "|" + state.time + "|" + Date.now()) >>> 0;
       const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
       let code = "";
       for (let i = 0; i < 4; i++) {
         code += chars[n % chars.length];
-        n = Math.floor(n / chars.length) ^ (hash(String(n + i * 17)) >>> 0);
+        n = (Math.floor(n / chars.length) ^ (hash(String(n + i * 17)) >>> 0)) >>> 0;
       }
       return prefix + "-" + code;
     }
