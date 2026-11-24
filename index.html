@@ -1723,7 +1723,24 @@
       return true;
     }
 
-    // When CONFIG.aiEndpoint is set, POST { messages, "config-subset", knowledge, slots, today }
+    function selectedPayload() {
+      const b = brById(state.branch);
+      const s = svcById(state.service);
+      const barber = assignedBarber();
+      const out = { awaiting: state.step || null };
+      if (b) { out.branch = b.name; out.branchId = b.id; }
+      if (s) { out.service = s.name; out.serviceId = s.id; }
+      if (state.dayOffset != null) {
+        out.date = dateStamp(maltaNow(), state.dayOffset);
+        out.dayLabel = longDate(maltaNow(), state.dayOffset);
+      }
+      if (state.time) out.time = state.time;
+      if (barber) { out.barber = barberFirstName(barber); out.barberFull = barber.name; }
+      if (state.name) out.name = state.name;
+      return out;
+    }
+
+    // When CONFIG.aiEndpoint is set, POST { messages, "config-subset", knowledge, slots, today, selected }
     // and expect { reply, booking, quickReplies }. On error, use the scripted assistant.
     async function getReply(hist) {
       if (C.aiEndpoint) {
@@ -1742,7 +1759,8 @@
               },
               knowledge: C.knowledge || {},
               slots: slotsPayload(),
-              today: todayLabel()
+              today: todayLabel(),
+              selected: selectedPayload()
             })
           });
           if (res.ok) {
